@@ -12,6 +12,9 @@ public class UsuarioService {
     public UsuarioService() {
         usuarioDAO = new UsuarioDAO();
     }
+    public UsuarioService(UsuarioDAO usuarioDAO) {
+    this.usuarioDAO = usuarioDAO;
+}
 
     public boolean registrar(Usuario usuario) {
         return usuarioDAO.insertar(usuario);
@@ -20,6 +23,9 @@ public class UsuarioService {
     public List<Usuario> listar() {
         return usuarioDAO.listar();
     }
+    public List<Usuario> listarKardex() {
+    return usuarioDAO.listarKardex();
+}
 
     public boolean actualizar(Usuario usuario) {
         return usuarioDAO.actualizar(usuario);

@@ -69,6 +69,38 @@ public class UsuarioDAO {
     return lista;
 }
 
+    public List<Usuario> listarKardex() {
+
+    List<Usuario> lista = new ArrayList<>();
+
+    String sql = "SELECT * FROM Usuario WHERE activo = true ORDER BY id_usuario";
+
+    try (Connection cn = ConexionBD.conectar();
+         PreparedStatement ps = cn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+
+            Usuario usuario = new Usuario();
+
+            usuario.setIdUsuario(rs.getInt("id_usuario"));
+            usuario.setUsername(rs.getString("username"));
+            usuario.setNombre(rs.getString("nombre"));
+            usuario.setApellidos(rs.getString("apellidos"));
+            usuario.setCorreo(rs.getString("correo"));
+            usuario.setPassword(rs.getString("password"));
+            usuario.setRol(rs.getString("rol"));
+            usuario.setActivo(rs.getBoolean("activo"));
+
+            lista.add(usuario);
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al listar usuarios para Kardex: " + e.getMessage());
+    }
+
+    return lista;
+}
     public boolean actualizar(Usuario usuario) {
 
         String sql = """

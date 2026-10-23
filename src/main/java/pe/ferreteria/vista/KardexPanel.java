@@ -92,8 +92,7 @@ private List<Proveedor> listaProveedores
         listaProductos
                 = productoController.listar();
 
-        listaUsuarios
-                = usuarioService.listar();
+        listaUsuarios = usuarioService.listarKardex();
         listaCategorias
         = categoriaController.listar();
 
