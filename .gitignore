@@ -1,0 +1,13 @@
+# Archivos compilados de Maven
+target/
+
+# Archivos temporales y logs
+*.log
+
+# Configuración local que podría contener credenciales
+.env
+
+# Documentos generados localmente
+comprobantes/
+reportes/
+etiquetas_defectuosos/
