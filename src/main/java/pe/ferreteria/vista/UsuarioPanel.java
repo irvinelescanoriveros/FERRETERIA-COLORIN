@@ -110,7 +110,15 @@ private void cargarUsuarioSeleccionado() {
 }
 
 private void registrarUsuario() {
-
+if ("WEB".equals(comboRol.getSelectedItem())) {
+    JOptionPane.showMessageDialog(
+        this,
+        "El rol WEB está reservado para operaciones internas.",
+        "Rol restringido",
+        JOptionPane.WARNING_MESSAGE
+    );
+    return;
+}
     if (txtUsuario.getText().trim().isEmpty()
             || txtContraseña.getText().trim().isEmpty()
             || txtNombre.getText().trim().isEmpty()
@@ -155,7 +163,15 @@ private void registrarUsuario() {
     }
 }
 private void editarUsuario() {
-
+if ("WEB".equals(comboRol.getSelectedItem())) {
+    JOptionPane.showMessageDialog(
+        this,
+        "No se permite asignar el rol WEB desde esta interfaz.",
+        "Rol restringido",
+        JOptionPane.WARNING_MESSAGE
+    );
+    return;
+}
     if (txtID.getText().trim().isEmpty()) {
 
         JOptionPane.showMessageDialog(

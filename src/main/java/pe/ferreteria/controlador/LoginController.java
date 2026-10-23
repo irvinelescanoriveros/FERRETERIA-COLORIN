@@ -12,22 +12,22 @@ public class LoginController {
         usuarioService = new UsuarioService();
     }
 
-    public boolean iniciarSesion(
-            String username,
-            String password) {
+    public LoginController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
 
-        Usuario usuario =
-                usuarioService.autenticar(
-                        username,
-                        password
-                );
+    public boolean iniciarSesion(String username, String password) {
+        Usuario usuario = usuarioService.autenticar(username, password);
 
         if (usuario == null) {
             return false;
         }
 
-        SesionUsuario.iniciarSesion(usuario);
+        if ("WEB".equals(usuario.getRol())) {
+            return false;
+        }
 
+        SesionUsuario.iniciarSesion(usuario);
         return true;
     }
 }

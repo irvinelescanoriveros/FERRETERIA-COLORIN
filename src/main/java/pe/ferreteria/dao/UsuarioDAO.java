@@ -40,7 +40,7 @@ public class UsuarioDAO {
 
     List<Usuario> lista = new ArrayList<>();
 
-    String sql = "SELECT * FROM Usuario WHERE activo = true ORDER BY id_usuario";
+    String sql = "SELECT * FROM Usuario WHERE activo = true AND rol <> 'WEB' ORDER BY id_usuario";
 
     try (Connection cn = ConexionBD.conectar();
          PreparedStatement ps = cn.prepareStatement(sql);
