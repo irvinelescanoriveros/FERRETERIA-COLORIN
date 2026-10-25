@@ -90,8 +90,11 @@ El acceso se realiza mediante usuario y contraseña. Las opciones disponibles de
 
 1. Descargar o clonar el repositorio.
 2. Iniciar el servicio de MySQL.
-3. Crear o importar la base de datos `bd_colorin` con la estructura y los datos necesarios.
-4. Configurar los parámetros de conexión a MySQL.
+3. Ejecutar los scripts SQL del directorio `database/` en el siguiente orden:
+   - `01_creacion_bd.sql`: crea la base de datos `bd_colorin`.
+   - `02_tablas.sql`: selecciona la base de datos y crea las tablas.
+   - `03_datos_iniciales.sql`: inserta los datos iniciales de prueba.
+4. Configurar los parámetros de conexión a MySQL en `pe.ferreteria.infraestructura.ConexionBD`.
 5. Abrir el proyecto desde su archivo `pom.xml` en Apache NetBeans.
 6. Permitir que Maven resuelva las dependencias necesarias.
 7. Ejecutar el proyecto utilizando la clase principal `pe.ferreteria.principal.Principal`.

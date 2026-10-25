@@ -1,10 +1,3 @@
--- ============================================
--- FERRETERÍA COLORÍN
--- BASE DE DATOS - CREACIÓN DE TABLAS
--- ============================================
-drop database bd_colorin;
-CREATE DATABASE bd_colorin;
-USE bd_colorin;
 
 -- ============================================
 -- TABLA: CATEGORIA
