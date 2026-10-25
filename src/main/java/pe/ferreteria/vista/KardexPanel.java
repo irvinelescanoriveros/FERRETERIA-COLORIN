@@ -1077,22 +1077,13 @@ String motivo =
                 .trim();
 
 if (motivo.isEmpty()) {
-
     javax.swing.JOptionPane.showMessageDialog(
             this,
             "Ingrese una observación."
     );
-
     txtObservacion.requestFocus();
-
     return;
 }
-
-    if (respuesta
-            != javax.swing.JOptionPane.YES_OPTION) {
-
-        return;
-    }
 
     int idUsuario =
             pe.ferreteria.infraestructura.SesionUsuario

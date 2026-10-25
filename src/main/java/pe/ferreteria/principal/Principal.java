@@ -1,20 +1,33 @@
+
 package pe.ferreteria.principal;
 
-import pe.ferreteria.infraestructura.ConexionBD;
-import java.sql.Connection;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import pe.ferreteria.vista.LoginForm;
 
 public class Principal {
 
     public static void main(String[] args) {
 
-        try (Connection conexion = ConexionBD.conectar()) {
+        try {
+            for (UIManager.LookAndFeelInfo info :
+                    UIManager.getInstalledLookAndFeels()) {
 
-            System.out.println("FERRETERIA-SISTEMA iniciado correctamente.");
-            System.out.println("Conexión a MySQL establecida correctamente.");
-
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
         } catch (Exception e) {
-            System.out.println("Error al conectar con MySQL.");
-            e.printStackTrace();
+            System.err.println(
+                    "No se pudo configurar el estilo visual: "
+                    + e.getMessage()
+            );
         }
+
+        SwingUtilities.invokeLater(() -> {
+            LoginForm login = new LoginForm();
+            login.setVisible(true);
+        });
     }
 }

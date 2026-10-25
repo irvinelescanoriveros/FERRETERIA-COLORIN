@@ -6,7 +6,6 @@ drop database bd_colorin;
 CREATE DATABASE bd_colorin;
 USE bd_colorin;
 
-
 -- ============================================
 -- TABLA: CATEGORIA
 -- ============================================
@@ -33,6 +32,8 @@ CREATE TABLE Marca (
 -- pertenece al lote/inventario.
 -- ============================================
 
+
+
 CREATE TABLE Producto (
     id_producto INT AUTO_INCREMENT PRIMARY KEY,
     codigo VARCHAR(15) NOT NULL UNIQUE,
@@ -52,6 +53,39 @@ CREATE TABLE Producto (
         FOREIGN KEY (id_marca)
         REFERENCES Marca(id_marca)
 );
+
+
+CREATE TABLE Detalle_Tecnico_Producto (
+    id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+    id_producto INT NOT NULL UNIQUE,
+    descripcion_comercial TEXT,
+    caracteristicas TEXT,
+    ventajas TEXT,
+    donde_usarlo TEXT,
+    recomendaciones_uso TEXT,
+    advertencia_uso TEXT,
+    observaciones TEXT,
+    observaciones_adicionales TEXT,
+    garantia VARCHAR(100),
+    ficha_tecnica JSON,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    CONSTRAINT fk_detalle_tecnico_producto
+        FOREIGN KEY (id_producto)
+        REFERENCES Producto(id_producto)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Imagen_Producto_Web (
+    id_imagen INT AUTO_INCREMENT PRIMARY KEY,
+    id_producto INT NOT NULL UNIQUE,
+    ruta_imagen VARCHAR(255) NOT NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    CONSTRAINT fk_imagen_producto_web
+        FOREIGN KEY (id_producto)
+        REFERENCES Producto(id_producto)
+        ON DELETE CASCADE
+);
+
 
 
 -- ============================================
@@ -84,7 +118,8 @@ CREATE TABLE Usuario (
     rol ENUM(
         'Administrador',
         'Vendedor',
-        'Almacen'
+        'Almacen',
+        'WEB'
     ) NOT NULL,
     activo TINYINT(1) NOT NULL DEFAULT 1
 );
@@ -348,6 +383,7 @@ CREATE TABLE Venta (
     subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     igv DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    costo_envio DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     tipo_comprobante ENUM(
         'Boleta',
         'Factura'
@@ -381,11 +417,14 @@ CREATE TABLE Venta (
     CONSTRAINT fk_venta_usuario
         FOREIGN KEY (id_usuario)
         REFERENCES Usuario(id_usuario),
-    CHECK (monto_recibido >= 0),
-    CHECK (vuelto >= 0),
+    CONSTRAINT chk_venta_monto_recibido
+        CHECK (monto_recibido >= 0),
+    CONSTRAINT chk_venta_vuelto
+        CHECK (vuelto >= 0),
+    CONSTRAINT chk_venta_costo_envio
+        CHECK (costo_envio >= 0),
     UNIQUE (serie, numero)
 );
-
 -- ============================================
 -- TABLA: DETALLE_VENTA
 -- ============================================
@@ -489,9 +528,10 @@ CREATE TABLE Kardex (
         'Ajuste',
         'Reversion'
     ) NOT NULL,
-    motivo_movimiento ENUM(
-         'Compra',
+   motivo_movimiento ENUM(
+    'Compra',
     'Venta',
+    'Venta Web',
     'Producto Defectuoso',
     'Reposicion p. client.',
     'Reingreso',
@@ -514,10 +554,11 @@ CREATE TABLE Kardex (
     monto_total DECIMAL(10,2)
         AS (cantidad * precio_unitario) STORED,
     tipo_referencia ENUM(
-        'Compra',
-        'Venta',
-        'Ajuste'
-    ) NOT NULL,
+    'Compra',
+    'Venta',
+    'Pedido Web',
+    'Ajuste'
+) NOT NULL,
     id_referencia INT NULL,
     nro_comprobante VARCHAR(30) NULL,
     motivo VARCHAR(255) NULL,
@@ -668,3 +709,143 @@ CREATE TABLE Movimiento_Caja (
         REFERENCES Compra(id_compra),
     CHECK (monto > 0)
 );
+
+
+-- Cuenta y perfil del comprador web.
+-- id_cliente se vincula con Cliente cuando se identifica
+-- un registro existente o se crea el cliente al confirmar
+-- la primera compra. La contraseña debe guardarse como hash
+-- generado por el backend (nunca como texto plano).
+CREATE TABLE IF NOT EXISTS Cliente_Web (
+    id_cliente_web INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT NULL UNIQUE,
+    correo VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    tipo_cliente ENUM('Natural', 'Juridica') NOT NULL DEFAULT 'Natural',
+    dni CHAR(8) NULL UNIQUE,
+    ruc CHAR(11) NULL UNIQUE,
+    nombres VARCHAR(100) NULL,
+    apellidos VARCHAR(100) NULL,
+    razon_social VARCHAR(150) NULL,
+    telefono VARCHAR(15) NULL,
+    genero VARCHAR(30) NULL,
+    fecha_nacimiento DATE NULL,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cliente_web_cliente
+        FOREIGN KEY (id_cliente)
+        REFERENCES Cliente(id_cliente)
+);
+
+-- Direcciones guardadas en la cuenta web.
+CREATE TABLE IF NOT EXISTS Direccion_Cliente_Web (
+    id_direccion_web INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente_web INT NOT NULL,
+    etiqueta VARCHAR(50) NOT NULL,
+    departamento VARCHAR(80) NOT NULL,
+    provincia VARCHAR(80) NOT NULL,
+    distrito VARCHAR(80) NOT NULL,
+    direccion VARCHAR(180) NOT NULL,
+    piso_departamento VARCHAR(80) NULL,
+    referencia VARCHAR(255) NULL,
+    predeterminada TINYINT(1) NOT NULL DEFAULT 0,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_direccion_web_cliente
+        FOREIGN KEY (id_cliente_web)
+        REFERENCES Cliente_Web(id_cliente_web),
+    INDEX idx_direccion_web_cliente_activa (id_cliente_web, activo)
+);
+
+-- Pedido creado por el checkout. Se conserva aquí mientras
+-- el pago esté pendiente. id_venta se completa al convertir
+-- el pedido en una venta confirmada del sistema existente.
+-- La dirección se copia como fotografía histórica para que
+-- cambios posteriores en la libreta no alteren el pedido.
+CREATE TABLE IF NOT EXISTS Pedido_Web (
+    id_pedido_web INT AUTO_INCREMENT PRIMARY KEY,
+    numero_pedido VARCHAR(30) NOT NULL UNIQUE,
+    id_cliente_web INT NOT NULL,
+    id_venta INT NULL UNIQUE,
+    fecha_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    estado_pedido ENUM(
+        'Pendiente',
+        'Confirmado',
+        'En preparacion',
+        'Enviado',
+        'Entregado',
+        'Cancelado'
+    ) NOT NULL DEFAULT 'Pendiente',
+    estado_pago ENUM(
+        'Pendiente',
+        'Confirmado',
+        'Rechazado',
+        'Reembolsado'
+    ) NOT NULL DEFAULT 'Pendiente',
+    metodo_pago VARCHAR(80) NULL,
+    metodo_entrega ENUM('Domicilio', 'Recojo') NOT NULL,
+    departamento VARCHAR(80) NULL,
+    provincia VARCHAR(80) NULL,
+    distrito VARCHAR(80) NULL,
+    direccion VARCHAR(180) NULL,
+    piso_departamento VARCHAR(80) NULL,
+    referencia VARCHAR(255) NULL,
+    fecha_entrega DATE NULL,
+    punto_recojo VARCHAR(150) NULL,
+    tipo_comprobante ENUM('Boleta', 'Factura') NOT NULL DEFAULT 'Boleta',
+    ruc_factura CHAR(11) NULL,
+    razon_social VARCHAR(150) NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    costo_envio DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total DECIMAL(10,2) NOT NULL,
+    fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pedido_web_cliente
+        FOREIGN KEY (id_cliente_web)
+        REFERENCES Cliente_Web(id_cliente_web),
+    CONSTRAINT fk_pedido_web_venta
+        FOREIGN KEY (id_venta)
+        REFERENCES Venta(id_venta),
+    CHECK (subtotal >= 0),
+    CHECK (costo_envio >= 0),
+    CHECK (total >= 0),
+    INDEX idx_pedido_web_cliente_fecha (id_cliente_web, fecha_pedido),
+    INDEX idx_pedido_web_estados (estado_pedido, estado_pago)
+);
+
+-- Detalle del pedido con nombre y precio congelados al comprar.
+-- id_producto permite contrastar el catálogo; la venta confirmada
+-- asignará uno o más lotes de Inventario en Detalle_Venta.
+CREATE TABLE IF NOT EXISTS Detalle_Pedido_Web (
+    id_detalle_pedido_web INT AUTO_INCREMENT PRIMARY KEY,
+    id_pedido_web INT NOT NULL,
+    id_producto INT NOT NULL,
+    codigo_producto VARCHAR(15) NOT NULL,
+    nombre_producto VARCHAR(150) NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2)
+        AS (cantidad * precio_unitario) STORED,
+    CONSTRAINT fk_detalle_pedido_web_pedido
+        FOREIGN KEY (id_pedido_web)
+        REFERENCES Pedido_Web(id_pedido_web),
+    CONSTRAINT fk_detalle_pedido_web_producto
+        FOREIGN KEY (id_producto)
+        REFERENCES Producto(id_producto),
+    CHECK (cantidad > 0),
+    CHECK (precio_unitario >= 0),
+    UNIQUE (id_pedido_web, id_producto)
+);
+
+-- NOTAS PARA LA IMPLEMENTACIÓN DEL BACKEND:
+-- 1. Usuario.rol ya contempla 'WEB' en el esquema compartido.
+--    OperacionWEB será el actor técnico usado como id_usuario
+--    al registrar la venta y el Kardex; no es la cuenta del cliente.
+-- 2. No se debe registrar una Venta ni descontar Inventario mientras
+--    estado_pago siga Pendiente. Al confirmar el pago, el backend
+--    debe enlazar id_venta y actualizar Venta, Detalle_Venta,
+--    Inventario y Kardex en una transacción.
+-- 3. El acceso a MySQL y la verificación de contraseñas pertenecen
+--    al backend. No incluir credenciales en HTML/JavaScript.
