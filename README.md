@@ -94,7 +94,7 @@ El acceso se realiza mediante usuario y contraseña. Las opciones disponibles de
    - `01_creacion_bd.sql`: crea la base de datos `bd_colorin`.
    - `02_tablas.sql`: selecciona la base de datos y crea las tablas.
    - `03_datos_iniciales.sql`: inserta los datos iniciales de prueba.
-4. Configurar los parámetros de conexión a MySQL en `pe.ferreteria.infraestructura.ConexionBD`.
+4. Configurar los parámetros de conexión a MySQL mediante el archivo `ferreteria.properties`, las variables de entorno o las propiedades de la JVM, según el entorno de ejecución.
 5. Abrir el proyecto desde su archivo `pom.xml` en Apache NetBeans.
 6. Permitir que Maven resuelva las dependencias necesarias.
 7. Ejecutar el proyecto utilizando la clase principal `pe.ferreteria.principal.Principal`.
@@ -110,7 +110,7 @@ La aplicación web se ejecuta de manera independiente y requiere su propia confi
 
 La aplicación de escritorio utiliza MySQL y se conecta a la base de datos `bd_colorin` mediante la clase `pe.ferreteria.infraestructura.ConexionBD`.
 
-Parámetros de conexión predeterminados:
+Parámetros de conexión:
 
 | Parámetro | Valor |
 |---|---|
@@ -118,11 +118,19 @@ Parámetros de conexión predeterminados:
 | Puerto | `3306` |
 | Base de datos | `bd_colorin` |
 | Usuario | Configurable según el entorno local |
-| Contraseña | Configurar de forma segura |
+| Contraseña | Configurada de forma segura para cada entorno |
 
-Antes de ejecutar la aplicación, es necesario iniciar MySQL, preparar la base de datos y verificar los parámetros de conexión.
+La configuración de las credenciales de la aplicación de escritorio se realiza mediante el siguiente orden de prioridad:
 
-**Seguridad:** no se deben publicar contraseñas reales ni otros datos sensibles en el repositorio. Las credenciales deben configurarse de forma segura para cada entorno.
+1. Propiedades de la JVM.
+2. Variables de entorno.
+3. Archivo `ferreteria.properties`.
+
+Para mejorar la seguridad, se utiliza un usuario de MySQL independiente de `root`, con permisos limitados a las operaciones necesarias sobre `bd_colorin`.
+
+La aplicación web también utiliza un usuario de aplicación y mantiene su configuración local de conexión en `application-local.properties`, archivo excluido del repositorio mediante `.gitignore`.
+
+No se deben publicar contraseñas reales ni otros datos sensibles en el repositorio.
 
 ## 10. Documentación
 
@@ -145,7 +153,7 @@ El porcentaje representa una estimación general del avance del proyecto, no una
 
 ## 12. Pruebas de software
 
-Se implementaron pruebas unitarias en la aplicación de escritorio para verificar el funcionamiento de los principales servicios del sistema.
+Se implementaron pruebas unitarias en la aplicación de escritorio para verificar el funcionamiento de los principales servicios del sistema y los componentes relacionados con la seguridad.
 
 ### Herramientas utilizadas
 
@@ -154,21 +162,35 @@ Se implementaron pruebas unitarias en la aplicación de escritorio para verifica
 - **JaCoCo:** medición de la cobertura del código durante la ejecución de las pruebas.
 - **Maven:** gestión y ejecución de las pruebas.
 
-### Servicios evaluados
+### Cobertura de los servicios principales
 
-| Servicio | Cobertura |
-|---|---:|
-| VentaService | 84% |
-| CajaService | 85% |
-| InventarioService | 91% |
-| CompraService | 88% |
-| ProductoService | 86% |
+| Servicio | Cobertura de instrucciones | Cobertura de ramas |
+|---|---:|---:|
+| VentaService | 84 % | 96 % |
+| CajaService | 85 % | 78 % |
+| InventarioService | 91 % | 92 % |
+| CompraService | 86 % | 75 % |
+| ProductoService | 86 % | 100 % |
+
+### Cobertura de componentes de seguridad
+
+| Componente | Cobertura de instrucciones | Cobertura de ramas |
+|---|---:|---:|
+| Seguridad | 94 % | 96 % |
+| Configuracion | 89 % | 85 % |
+| SesionUsuario | 44 % | 0 % |
+
+### Cobertura total del proyecto
+
+- **Instrucciones cubiertas:** 81 %.
+- **Ramas cubiertas:** 86 %.
 
 ### Resultados de ejecución
 
-- **Pruebas ejecutadas:** 106.
+- **Pruebas ejecutadas:** 136.
 - **Pruebas fallidas:** 0.
 - **Errores:** 0.
+- **Pruebas omitidas:** 1.
 - **Resultado:** BUILD SUCCESS.
 
 ### Ejecución de las pruebas
@@ -185,8 +207,7 @@ El informe de cobertura generado por JaCoCo se encuentra en:
 target/site/jacoco/index.html
 ```
 
-Estas pruebas permiten verificar parte de la lógica de negocio y detectar posibles errores en los servicios principales del sistema.
-
+Estas pruebas permiten verificar parte de la lógica de negocio y los controles de seguridad implementados, así como identificar componentes que requieren mayor cobertura de pruebas.
 ## 13. Información académica
 
 - **Proyecto:** Sistema de Gestión de Inventario y Ventas para Ferretería Colorín.
@@ -197,3 +218,20 @@ Estas pruebas permiten verificar parte de la lógica de negocio y detectar posib
 - **Curso:** Integrador I.
 - **Organización beneficiaria:** Ferretería Colorín.
 - **Periodo planificado:** agosto a diciembre de 2026.
+
+## 14. Seguridad
+
+Durante la Semana 14 se implementaron medidas de seguridad para proteger la información y controlar el acceso a la aplicación de escritorio y al backend web.
+
+Entre las principales medidas se encuentran:
+
+- **Protección de contraseñas:** almacenamiento mediante PBKDF2-HMAC-SHA256, con 210 000 iteraciones y sal aleatoria.
+- **Migración de contraseñas:** actualización automática de contraseñas antiguas en texto plano a formato hash después de una autenticación correcta.
+- **Acceso a MySQL:** utilización del usuario `colorin_app` con privilegios limitados sobre la base de datos `bd_colorin`.
+- **Configuración de credenciales:** separación de las credenciales de los archivos de código y exclusión de los archivos locales del repositorio.
+- **Configuración CORS:** restricción de los orígenes permitidos en el backend web.
+- **Protección de sesiones:** configuración de cookies HttpOnly y SameSite=Lax.
+- **Manejo de errores:** ocultamiento de mensajes internos y trazas de errores en las respuestas web.
+- **Análisis de seguridad:** configuración de CodeQL y Dependabot mediante GitHub Actions.
+
+Para consultar los hallazgos, controles implementados y evidencias de verificación, revisar el documento `docs/seguridad/informe_seguridad.md`.
