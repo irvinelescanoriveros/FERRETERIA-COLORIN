@@ -9,7 +9,15 @@ public class ProductoService {
     private final ProductoDAO productoDAO;
 
     public ProductoService() {
-        productoDAO = new ProductoDAO();
+        this(new ProductoDAO());
+    }
+
+    /*
+ * Constructor con inyección de dependencias.
+ * Permite probar el servicio con un DAO simulado (Mockito).
+     */
+    public ProductoService(ProductoDAO productoDAO) {
+        this.productoDAO = productoDAO;
     }
 
     public boolean registrar(Producto producto) {
@@ -31,14 +39,15 @@ public class ProductoService {
     public boolean existeCodigo(String codigo, int idProducto) {
         return productoDAO.existeCodigo(codigo, idProducto);
     }
+
     public Producto buscarParaDashboard(int idProducto) {
 
-    if (idProducto <= 0) {
-        return null;
-    }
+        if (idProducto <= 0) {
+            return null;
+        }
 
-    return productoDAO.buscarParaDashboard(
-            idProducto
-    );
-}
+        return productoDAO.buscarParaDashboard(
+                idProducto
+        );
+    }
 }

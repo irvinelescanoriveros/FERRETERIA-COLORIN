@@ -1,0 +1,36 @@
+name: CI - Pruebas y cobertura
+
+# Se ejecuta en cada push a main/develop y en cada Pull Request hacia main.
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  pruebas:
+    name: Compilar y ejecutar pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Ejecutar pruebas (JUnit 5 + Mockito) y generar cobertura (JaCoCo)
+        run: mvn -B test
+
+      - name: Publicar informes de pruebas y cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informes-pruebas
+          path: |
+            target/surefire-reports
+            target/site/jacoco

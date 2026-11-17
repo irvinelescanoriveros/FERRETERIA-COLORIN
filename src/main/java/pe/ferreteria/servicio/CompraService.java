@@ -11,9 +11,24 @@ import java.util.List;
 
 public class CompraService {
 
-    private final CompraDAO compraDAO = new CompraDAO();
-    private final DetalleCompraDAO detalleCompraDAO =
-            new DetalleCompraDAO();
+    private final CompraDAO compraDAO;
+private final DetalleCompraDAO detalleCompraDAO;
+
+public CompraService() {
+    this(new CompraDAO(), new DetalleCompraDAO());
+}
+
+/*
+ * Constructor con inyección de dependencias.
+ * Permite probar el servicio con DAO simulados (Mockito).
+ */
+public CompraService(
+        CompraDAO compraDAO,
+        DetalleCompraDAO detalleCompraDAO) {
+
+    this.compraDAO = compraDAO;
+    this.detalleCompraDAO = detalleCompraDAO;
+}
 
     public boolean registrarCompra(
             Compra compra,

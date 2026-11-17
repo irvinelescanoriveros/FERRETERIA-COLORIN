@@ -16,9 +16,20 @@ public class CajaService {
     private final MovimientoCajaDAO movimientoCajaDAO;
 
     public CajaService() {
-        this.cajaDAO = new CajaDAO();
-        this.movimientoCajaDAO = new MovimientoCajaDAO();
-    }
+    this(new CajaDAO(), new MovimientoCajaDAO());
+}
+
+/*
+ * Constructor con inyección de dependencias.
+ * Permite probar el servicio con DAO simulados (Mockito).
+ */
+public CajaService(
+        CajaDAO cajaDAO,
+        MovimientoCajaDAO movimientoCajaDAO) {
+
+    this.cajaDAO = cajaDAO;
+    this.movimientoCajaDAO = movimientoCajaDAO;
+}
 
     /*
      * Registrar apertura de Caja.

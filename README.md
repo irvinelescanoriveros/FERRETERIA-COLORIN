@@ -143,7 +143,51 @@ La aplicación de escritorio cuenta con los módulos de gestión previstos y la 
 
 El porcentaje representa una estimación general del avance del proyecto, no una medición individual de cada módulo.
 
-## 12. Información académica
+## 12. Pruebas de software
+
+Se implementaron pruebas unitarias en la aplicación de escritorio para verificar el funcionamiento de los principales servicios del sistema.
+
+### Herramientas utilizadas
+
+- **JUnit 5:** creación y ejecución de pruebas unitarias.
+- **Mockito:** simulación de dependencias DAO para probar los servicios de manera aislada.
+- **JaCoCo:** medición de la cobertura del código durante la ejecución de las pruebas.
+- **Maven:** gestión y ejecución de las pruebas.
+
+### Servicios evaluados
+
+| Servicio | Cobertura |
+|---|---:|
+| VentaService | 84% |
+| CajaService | 85% |
+| InventarioService | 91% |
+| CompraService | 88% |
+| ProductoService | 86% |
+
+### Resultados de ejecución
+
+- **Pruebas ejecutadas:** 106.
+- **Pruebas fallidas:** 0.
+- **Errores:** 0.
+- **Resultado:** BUILD SUCCESS.
+
+### Ejecución de las pruebas
+
+Desde la raíz del proyecto, ejecutar:
+
+```bash
+mvn test
+```
+
+El informe de cobertura generado por JaCoCo se encuentra en:
+
+```text
+target/site/jacoco/index.html
+```
+
+Estas pruebas permiten verificar parte de la lógica de negocio y detectar posibles errores en los servicios principales del sistema.
+
+## 13. Información académica
 
 - **Proyecto:** Sistema de Gestión de Inventario y Ventas para Ferretería Colorín.
 - **Siglas:** SGIVFC.

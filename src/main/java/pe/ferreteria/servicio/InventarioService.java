@@ -12,7 +12,15 @@ public class InventarioService {
     private final InventarioDAO inventarioDAO;
 
     public InventarioService() {
-        inventarioDAO = new InventarioDAO();
+        this(new InventarioDAO());
+    }
+
+    /*
+ * Constructor con inyección de dependencias.
+ * Permite probar el servicio con un DAO simulado (Mockito).
+     */
+    public InventarioService(InventarioDAO inventarioDAO) {
+        this.inventarioDAO = inventarioDAO;
     }
 
     public List<Inventario> listar() {
@@ -33,16 +41,20 @@ public class InventarioService {
             return 0;
         }
 
-        BigDecimal precioCompra =
-                detalleCompra.getPrecioCompra();
+        BigDecimal precioCompra
+                = detalleCompra.getPrecioCompra();
 
-        BigDecimal precioVenta =
-                precioCompra.multiply(
+        if (precioCompra == null) {
+            precioCompra = BigDecimal.ZERO;
+        }
+
+        BigDecimal precioVenta
+                = precioCompra.multiply(
                         new BigDecimal("1.20")
                 );
 
-        Inventario inventario =
-                new Inventario();
+        Inventario inventario
+                = new Inventario();
 
         inventario.setIdProducto(
                 detalleCompra.getIdProducto()
@@ -102,87 +114,89 @@ public class InventarioService {
                 inventario
         );
     }
-public int registrarInventario(
-        Connection con,
-        pe.ferreteria.modelo.DetalleCompra detalleCompra,
-        pe.ferreteria.modelo.Compra compra,
-        pe.ferreteria.modelo.Producto producto,
-        int cantidadRecibida) {
 
-    if (detalleCompra == null
-            || compra == null
-            || producto == null
-            || cantidadRecibida <= 0) {
+    public int registrarInventario(
+            Connection con,
+            pe.ferreteria.modelo.DetalleCompra detalleCompra,
+            pe.ferreteria.modelo.Compra compra,
+            pe.ferreteria.modelo.Producto producto,
+            int cantidadRecibida) {
 
-        return 0;
+        if (detalleCompra == null
+                || compra == null
+                || producto == null
+                || cantidadRecibida <= 0) {
+
+            return 0;
+        }
+
+        BigDecimal precioCompra
+                = detalleCompra.getPrecioCompra();
+
+        if (precioCompra == null) {
+            precioCompra = BigDecimal.ZERO;
+        }
+
+        BigDecimal precioVenta
+                = precioCompra.multiply(
+                        new BigDecimal("1.20")
+                );
+
+        Inventario inventario
+                = new Inventario();
+
+        inventario.setIdProducto(
+                detalleCompra.getIdProducto()
+        );
+
+        inventario.setIdProveedor(
+                compra.getIdProveedor()
+        );
+
+        inventario.setLote(
+                detalleCompra.getLote()
+        );
+
+        inventario.setStock(
+                cantidadRecibida
+        );
+
+        inventario.setStockDefectuoso(0);
+
+        inventario.setPrecioCompra(
+                precioCompra
+        );
+
+        inventario.setPrecioVenta(
+                precioVenta
+        );
+
+        inventario.setDescuentoActivo(false);
+
+        inventario.setDescuentoPorcentaje(
+                BigDecimal.ZERO
+        );
+
+        inventario.setFechaVencimiento(
+                detalleCompra.getFechaVencimiento()
+        );
+
+        inventario.setEstante(
+                producto.getEstante()
+        );
+
+        inventario.setNivel(
+                producto.getNivel()
+        );
+
+        inventario.setActivo(true);
+
+        return inventarioDAO.insertar(
+                con,
+                inventario
+        );
     }
 
-    BigDecimal precioCompra =
-            detalleCompra.getPrecioCompra();
-
-    if (precioCompra == null) {
-        precioCompra = BigDecimal.ZERO;
-    }
-
-    BigDecimal precioVenta =
-            precioCompra.multiply(
-                    new BigDecimal("1.20")
-            );
-
-    Inventario inventario =
-            new Inventario();
-
-    inventario.setIdProducto(
-            detalleCompra.getIdProducto()
-    );
-
-    inventario.setIdProveedor(
-            compra.getIdProveedor()
-    );
-
-    inventario.setLote(
-            detalleCompra.getLote()
-    );
-
-    inventario.setStock(
-            cantidadRecibida
-    );
-
-    inventario.setStockDefectuoso(0);
-
-    inventario.setPrecioCompra(
-            precioCompra
-    );
-
-    inventario.setPrecioVenta(
-            precioVenta
-    );
-
-    inventario.setDescuentoActivo(false);
-
-    inventario.setDescuentoPorcentaje(
-            BigDecimal.ZERO
-    );
-
-    inventario.setFechaVencimiento(
-            detalleCompra.getFechaVencimiento()
-    );
-
-    inventario.setEstante(
-            producto.getEstante()
-    );
-
-    inventario.setNivel(
-            producto.getNivel()
-    );
-
-    inventario.setActivo(true);
-
-    return inventarioDAO.insertar(
-            con,
-            inventario
-    );
-}
     public boolean actualizarUbicacion(
             int idInventario,
             String estante,
@@ -253,8 +267,8 @@ public int registrarInventario(
             return false;
         }
 
-        porcentaje =
-                porcentaje.setScale(
+        porcentaje
+                = porcentaje.setScale(
                         2,
                         java.math.RoundingMode.HALF_UP
                 );
@@ -297,77 +311,81 @@ public int registrarInventario(
                 BigDecimal.ZERO
         );
     }
+
     public boolean retirarStockDefectuoso(
-        int idInventario,
-        int cantidad) {
+            int idInventario,
+            int cantidad) {
 
-    if (idInventario <= 0) {
-        return false;
-    }
-
-    if (cantidad <= 0) {
-        return false;
-    }
-
-    if (pe.ferreteria.infraestructura.SesionUsuario
-            .getUsuarioActual() == null) {
-        return false;
-    }
-
-    Inventario inventarioEncontrado = null;
-
-    for (Inventario inventario : inventarioDAO.listar()) {
-
-        if (inventario.getIdInventario()
-                == idInventario) {
-
-            inventarioEncontrado = inventario;
-            break;
+        if (idInventario <= 0) {
+            return false;
         }
+
+        if (cantidad <= 0) {
+            return false;
+        }
+
+        if (pe.ferreteria.infraestructura.SesionUsuario
+                .getUsuarioActual() == null) {
+            return false;
+        }
+
+        Inventario inventarioEncontrado = null;
+
+        for (Inventario inventario : inventarioDAO.listar()) {
+
+            if (inventario.getIdInventario()
+                    == idInventario) {
+
+                inventarioEncontrado = inventario;
+                break;
+            }
+        }
+
+        if (inventarioEncontrado == null) {
+            return false;
+        }
+
+        if (cantidad
+                > inventarioEncontrado
+                        .getStockDefectuoso()) {
+
+            return false;
+        }
+
+        return inventarioDAO.actualizarStockDefectuoso(
+                idInventario,
+                inventarioEncontrado
+                        .getStockDefectuoso()
+                - cantidad
+        );
     }
 
-    if (inventarioEncontrado == null) {
-        return false;
-    }
-
-    if (cantidad >
-            inventarioEncontrado
-                    .getStockDefectuoso()) {
-
-        return false;
-    }
-
-    return inventarioDAO.actualizarStockDefectuoso(
-            idInventario,
-            inventarioEncontrado
-                    .getStockDefectuoso()
-                    - cantidad
-    );
-}
     public Inventario buscarParaDashboard(int idInventario) {
 
-    if (idInventario <= 0) {
-        return null;
+        if (idInventario <= 0) {
+            return null;
+        }
+
+        return inventarioDAO.buscarParaDashboard(
+                idInventario
+        );
     }
 
-    return inventarioDAO.buscarParaDashboard(
-            idInventario
-    );
-}
     public List<RotacionProductoReporte> listarRotacionParaReporte(
-        Integer dia,
-        Integer mes,
-        int anio,
-        Integer idUsuario) {
+            Integer dia,
+            Integer mes,
+            int anio,
+            Integer idUsuario) {
 
-    return inventarioDAO.listarRotacionParaReporte(
-            dia,
-            mes,
-            anio,
-            idUsuario
-    );
-}
+        return inventarioDAO.listarRotacionParaReporte(
+                dia,
+                mes,
+                anio,
+                idUsuario
+        );
+    }
+
     public int obtenerStockDefectuosoActual() {
-    return inventarioDAO.obtenerStockDefectuosoActual();
-}
+        return inventarioDAO.obtenerStockDefectuosoActual();
+    }
 }
