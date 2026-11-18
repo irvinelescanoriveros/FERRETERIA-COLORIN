@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '24'
           cache: maven
 
       - name: Ejecutar pruebas (JUnit 5 + Mockito) y generar cobertura (JaCoCo)
@@ -34,3 +34,12 @@ jobs:
           path: |
             target/surefire-reports
             target/site/jacoco
+
+      - name: Empaquetar JAR ejecutable
+        run: mvn -B -DskipTests package
+
+      - name: Publicar el JAR ejecutable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ferreteria-colorin-jar
+          path: target/ferreteria-colorin.jar

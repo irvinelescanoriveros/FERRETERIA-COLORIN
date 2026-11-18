@@ -1,0 +1,14 @@
+# /etc/systemd/system/colorin-web.service  (despliegue en servidor Linux sin Docker)
+[Unit]
+Description=Backend web Ferreteria Colorin
+After=network.target mysql.service
+
+[Service]
+User=colorin
+EnvironmentFile=/etc/colorin/web.env
+ExecStart=/usr/bin/java -jar /opt/colorin/backend-web.jar
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
