@@ -85,33 +85,33 @@ public class CategoriaDAO {
         }
     }
 
-    public boolean existeNombre(String nombre, int idCategoria) {
+public boolean existeNombre(String nombre, int idCategoria) {
 
-        String sql = """
-            SELECT COUNT(*)
-            FROM Categoria
-            WHERE nombre = ?
-              AND activo = true
-              AND id_categoria <> ?
-        """;
+    String sql = """
+        SELECT COUNT(*)
+        FROM Categoria
+        WHERE nombre = ?
+          AND id_categoria <> ?
+    """;
 
-        try (Connection con = ConexionBD.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, nombre);
-            ps.setInt(2, idCategoria);
+        ps.setString(1, nombre);
+        ps.setInt(2, idCategoria);
 
-            try (ResultSet rs = ps.executeQuery()) {
+        try (ResultSet rs = ps.executeQuery()) {
 
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
             }
-
-        } catch (SQLException e) {
-            return false;
         }
 
-        return false;
+    } catch (SQLException e) {
+        System.out.println("Error al verificar duplicado (" + e.getMessage() + "); se asume que existe.");
+        return true; // falla segura: evita registrar sin poder verificar
     }
+
+    return false;
+}
 }

@@ -125,4 +125,4 @@ Al registrar o actualizar un producto, la interfaz obtiene los identificadores c
 - La eliminación de categorías y marcas es lógica: el registro permanece en la base de datos y se marca como inactivo.
 - Los listados muestran únicamente los registros activos.
 - La comprobación de nombres en los DAO considera los registros activos, pero las restricciones `UNIQUE` de la base de datos también incluyen los inactivos. Por ello, intentar registrar nuevamente el nombre de un registro inactivo puede producir un error de duplicidad.
-- La conexión con MySQL se realiza mediante la infraestructura compartida del sistema, documentada por separado. no se si esta bien asi o  lodetallamos mas
+- La conexión con MySQL se realiza mediante la infraestructura compartida del sistema, documentada por separado.

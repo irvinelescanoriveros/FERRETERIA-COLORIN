@@ -51,13 +51,12 @@ public class CompraDAO {
             }
         }
     }
-    public boolean existeNroComprobante(String nroComprobante) {
+   public boolean existeNroComprobante(String nroComprobante) {
 
     String sql = """
         SELECT COUNT(*)
         FROM Compra
         WHERE nro_comprobante = ?
-          AND activo = true
         """;
 
     try (java.sql.Connection conexion =
@@ -81,6 +80,8 @@ public class CompraDAO {
                 "Error al verificar comprobante: "
                 + e.getMessage()
         );
+
+        return true; // ante un error SQL se asume duplicado (falla segura)
     }
 
     return false;

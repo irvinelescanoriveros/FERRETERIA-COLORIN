@@ -85,33 +85,33 @@ public class MarcaDAO {
         }
     }
 
-    public boolean existeNombre(String nombre, int idMarca) {
+   public boolean existeNombre(String nombre, int idMarca) {
 
-        String sql = """
-            SELECT COUNT(*)
-            FROM Marca
-            WHERE nombre = ?
-              AND activo = true
-              AND id_marca <> ?
-        """;
+    String sql = """
+        SELECT COUNT(*)
+        FROM Marca
+        WHERE nombre = ?
+          AND id_marca <> ?
+    """;
 
-        try (Connection con = ConexionBD.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, nombre);
-            ps.setInt(2, idMarca);
+        ps.setString(1, nombre);
+        ps.setInt(2, idMarca);
 
-            try (ResultSet rs = ps.executeQuery()) {
+        try (ResultSet rs = ps.executeQuery()) {
 
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
             }
-
-        } catch (SQLException e) {
-            return false;
         }
 
-        return false;
+    } catch (SQLException e) {
+        System.out.println("Error al verificar duplicado (" + e.getMessage() + "); se asume que existe.");
+        return true; // falla segura: evita registrar sin poder verificar
     }
+
+    return false;
+} 
 }

@@ -133,57 +133,56 @@ public class ClienteDAO {
         }
     }
 
-    public boolean existeDni(String dni, int idCliente) {
+public boolean existeDni(String dni, int idCliente) {
 
-        String sql = """
-                SELECT COUNT(*) FROM Cliente
-                WHERE dni = ?
-                AND id_cliente <> ?
-                AND activo = true
-                """;
+    String sql = """
+            SELECT COUNT(*) FROM Cliente
+            WHERE dni = ?
+            AND id_cliente <> ?
+            """;
 
-        try (Connection cn = ConexionBD.conectar();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
+    try (Connection cn = ConexionBD.conectar();
+         PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            ps.setString(1, dni);
-            ps.setInt(2, idCliente);
+        ps.setString(1, dni);
+        ps.setInt(2, idCliente);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error al verificar DNI: " + e.getMessage());
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next() && rs.getInt(1) > 0;
         }
 
-        return false;
+    } catch (SQLException e) {
+        System.out.println("Error al verificar DNI: " + e.getMessage());
     }
 
-    public boolean existeRuc(String ruc, int idCliente) {
+    return true; // ante un error SQL se asume duplicado (falla segura)
+}
 
-        String sql = """
-                SELECT COUNT(*) FROM Cliente
-                WHERE ruc = ?
-                AND id_cliente <> ?
-                AND activo = true
-                """;
+   public boolean existeRuc(String ruc, int idCliente) {
 
-        try (Connection cn = ConexionBD.conectar();
-             PreparedStatement ps = cn.prepareStatement(sql)) {
+    String sql = """
+            SELECT COUNT(*) FROM Cliente
+            WHERE ruc = ?
+            AND id_cliente <> ?
+            """;
 
-            ps.setString(1, ruc);
-            ps.setInt(2, idCliente);
+    try (Connection cn = ConexionBD.conectar();
+         PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
-            }
+        ps.setString(1, ruc);
+        ps.setInt(2, idCliente);
 
-        } catch (SQLException e) {
-            System.out.println("Error al verificar RUC: " + e.getMessage());
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next() && rs.getInt(1) > 0;
         }
 
-        return false;
+    } catch (SQLException e) {
+        System.out.println("Error al verificar RUC: " + e.getMessage());
     }
+
+    return true; // ante un error SQL se asume duplicado (falla segura)
+}
+
     public Cliente buscarPorId(int idCliente) {
 
     String sql = """

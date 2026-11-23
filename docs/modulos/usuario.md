@@ -108,7 +108,7 @@ La base de datos impide repetir el nombre de usuario y el correo electrónico. L
 - `LoginController` rechaza el inicio de sesión de escritorio para las cuentas WEB.
 - La desactivación se realiza mediante una actualización del campo `activo`.
 - `existeUsername()` considera también las cuentas inactivas, por lo que sus nombres de usuario no pueden reutilizarse mientras exista el registro.
-- La autenticación compara directamente la contraseña recibida con el valor almacenado. En el código revisado no se observa el uso de hash de contraseñas.
+- Desde la semana 14, la contraseña se guarda con hash PBKDF2 (`Seguridad`). `UsuarioDAO.buscarActivoPorUsername()` obtiene al usuario y `UsuarioService.autenticar()` verifica la contraseña; las contraseñas antiguas en texto plano se migran a hash en el primer inicio de sesión. Ver `docs/seguridad/informe_seguridad.md`.
 - En `UsuarioPanel`, el resultado del cambio de contraseña no se comprueba antes de mostrar el mensaje de actualización exitosa. Este comportamiento queda como mejora pendiente.
 - La exclusión de las cuentas WEB del listado y del inicio de sesión de escritorio no implica que exista una autenticación web implementada.
 

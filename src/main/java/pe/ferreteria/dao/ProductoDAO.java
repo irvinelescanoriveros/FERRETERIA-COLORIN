@@ -134,36 +134,35 @@ public class ProductoDAO {
             return false;
         }
     }
+public boolean existeCodigo(String codigo, int idProducto) {
 
-    public boolean existeCodigo(String codigo, int idProducto) {
+    String sql = """
+        SELECT COUNT(*)
+        FROM Producto
+        WHERE codigo = ?
+          AND id_producto <> ?
+    """;
 
-        String sql = """
-            SELECT COUNT(*)
-            FROM Producto
-            WHERE codigo = ?
-              AND activo = true
-              AND id_producto <> ?
-        """;
+    try (Connection con = ConexionBD.conectar();
+         PreparedStatement ps = con.prepareStatement(sql)) {
 
-        try (Connection con = ConexionBD.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, codigo);
+        ps.setInt(2, idProducto);
 
-            ps.setString(1, codigo);
-            ps.setInt(2, idProducto);
+        try (ResultSet rs = ps.executeQuery()) {
 
-            try (ResultSet rs = ps.executeQuery()) {
-
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
             }
-
-        } catch (SQLException e) {
-            return false;
         }
 
-        return false;
+    } catch (SQLException e) {
+        System.out.println("Error al verificar duplicado (" + e.getMessage() + "); se asume que existe.");
+        return true; // falla segura: evita registrar sin poder verificar
     }
+
+    return false;
+}
     public Producto buscarParaDashboard(int idProducto) {
 
     String sql = """
