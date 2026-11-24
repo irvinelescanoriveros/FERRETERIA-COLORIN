@@ -43,9 +43,9 @@ Identificar y corregir vulnerabilidades según OWASP Top 10, y dejar evidencia v
 
 | Prueba | Resultado |
 |---|---|
-| `mvn test` (todas las clases) | 136 ejecutadas, 0 fallidas, 0 errores y 1 omitida. |
+| `mvn test` (todas las clases) | 142 ejecutadas, 0 fallidas, 0 errores y 1 omitida. |
 | Compilación Maven | BUILD SUCCESS |
-| CodeQL (GitHub) | Configurado; pendiente verificar el resultado de ejecución. |
+| CodeQL (GitHub) | Ejecutado en GitHub Actions sin alertas pendientes. |
 
 **Nota:** Las 27 comprobaciones de interoperabilidad y las 136 pruebas JUnit corresponden a verificaciones diferentes.
 
