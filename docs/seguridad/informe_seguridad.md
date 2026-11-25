@@ -10,8 +10,7 @@ Identificar y corregir vulnerabilidades según OWASP Top 10, y dejar evidencia v
 ## 2. Metodología
 1. Revisión estática manual del código (autenticación, acceso a datos, configuración).
 2. Pruebas automatizadas JUnit de los controles implementados.
-3. Análisis automático con herramientas (CodeQL y Dependabot configurados en GitHub Actions; OWASP ZAP, Dependency-Check y SpotBugs+FindSecBugs descritos en la sección 6).
-
+3. Análisis automático con herramientas (CodeQL y Dependabot configurados y ejecutados en GitHub Actions; OWASP ZAP, Dependency-Check y SpotBugs+FindSecBugs descritos en la sección 6 como trabajo futuro, aún no ejecutados).
 ## 3. Hallazgos y acciones
 
 | ID | Hallazgo | OWASP | Severidad | Estado |
@@ -23,9 +22,9 @@ Identificar y corregir vulnerabilidades según OWASP Top 10, y dejar evidencia v
 | SEG-05 | Cookies de sesión y errores sin endurecer en el web | A05 | Baja | **Corregido**: HttpOnly, SameSite=Lax, sin mensajes/stacktrace en errores |
 | SEG-06 | Enumeración de usuarios por diferencia de tiempos en login | A07 | Baja | **Corregido**: verificación simulada si el usuario no existe; comparación en tiempo constante |
 | SEG-07 | Dependencias sin monitoreo | A06 | Media | **Mitigado**: Dependabot (Maven y Actions) y CodeQL semanal |
-| SEG-08 | Control de roles solo en la interfaz de escritorio | A01 | Media | **Pendiente / recomendación**: validar rol también en la capa de servicio |
-| SEG-09 | Sin bloqueo por intentos fallidos ni política de contraseñas en el registro web | A07 | Media | **Pendiente / recomendación** |
-| SEG-10 | `LoginForm` recorta (trim) la contraseña y `UsuarioPanel` no | A07 | Baja | **Pendiente**: unificar criterio |
+| SEG-08 | Control de roles solo en la interfaz de escritorio | A01 | Media | **Pendiente / trabajo futuro**: validar el rol también en la capa de servicio (ver `docs/seguridad/matriz_roles.md`). Riesgo bajo: la aplicación de escritorio tiene una única vía de entrada, la interfaz, y el rol WEB no puede iniciar sesión en ella |
+| SEG-09 | Sin bloqueo por intentos fallidos ni política de contraseñas en el registro web | A07 | Media | **Pendiente / trabajo futuro**: bloqueo temporal tras varios intentos y política de longitud mínima. Mitigación actual: los intentos fallidos se registran en el log (`Login fallido`) |
+| SEG-10 | `LoginForm` recorta (trim) la contraseña y `UsuarioPanel` no | A07 | Baja | **Pendiente / trabajo futuro**: unificar el criterio de espacios en las contraseñas |
 | SEG-11 | Datos iniciales con contraseñas de ejemplo en texto plano (`03_datos_iniciales.sql`) | A02 | Media | **Mitigado**: se migran a hash en el primer login; cambiarlas en producción |
 | SEG-12 | Endpoints `simular-*` del web (pagos) | A04 | Baja | **Aceptado**: simulación académica, no usar en producción |
 
@@ -47,12 +46,12 @@ Identificar y corregir vulnerabilidades según OWASP Top 10, y dejar evidencia v
 | Compilación Maven | BUILD SUCCESS |
 | CodeQL (GitHub) | Ejecutado en GitHub Actions sin alertas pendientes. |
 
-**Nota:** Las 27 comprobaciones de interoperabilidad y las 136 pruebas JUnit corresponden a verificaciones diferentes.
+**Nota:** Las 27 comprobaciones de interoperabilidad y las 142 pruebas JUnit corresponden a verificaciones diferentes.
 
 ## 6. Herramientas y cómo ejecutarlas
 - **CodeQL**: `.github/workflows/codeql.yml` (se ejecuta en cada push/PR a main y cada lunes).
 - **Dependabot**: `.github/dependabot.yml`.
-- **OWASP ZAP** (web): levantar el backend, luego `docker run -t zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:8080 -r zap.html`; adjuntar el reporte.
+- **OWASP ZAP** (web) – *trabajo futuro, no ejecutado en este proyecto*: levantar el backend y ejecutar un análisis de línea base con la imagen oficial de ZAP (`zaproxy/zap-stable`, script `zap-baseline.py`) contra `http://localhost:8080`, y adjuntar el reporte generado. Requiere Docker o la instalación local de ZAP.
 - **OWASP Dependency-Check**: `mvn org.owasp:dependency-check-maven:check`.
 - **SpotBugs + FindSecBugs**: `mvn com.github.spotbugs:spotbugs-maven-plugin:check` con el plugin `findsecbugs`.
 

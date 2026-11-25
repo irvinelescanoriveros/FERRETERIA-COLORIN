@@ -15,5 +15,7 @@ Resumen de lo que ya estaba documentado en cada módulo, con su prioridad para p
 | DEF-09 | Kardex | Reembolso de defectuosos podría no considerar descuentos; sin control de concurrencia por lote | Por verificar | Pruebas de `KardexService` | Abierto |
 | DEF-10 | Venta | `costo_envio` y SUNAT sin implementar en el flujo web | Funcionalidad pendiente | — | Pendiente |
 | DEF-11 | Usuario | Contraseñas en texto plano | Seguridad | `SeguridadTest`, `UsuarioServiceSeguridadTest` | **Corregido** (sem. 14) |
+| DEF-12 | Caja | El monto esperado de la caja suma todas las ventas como "Ingreso", sin distinguir el método de pago: tarjeta y transferencia se cuentan como efectivo en el cuadre | Simplificación | Prueba manual; mejora futura: separar efectivo y otros medios | Aceptado (simulación académica) |
+| DEF-13 | Venta / Caja | El pago con tarjeta está simplificado (sin pasarela real ni tipo de tarjeta) y la venta se asocia a la caja abierta del sistema, no a la caja propia del usuario que vende | Simplificación | — | Aceptado (simulación académica) |
 
 Origen: secciones "Observaciones / Consideraciones técnicas" de `docs/modulos/*.md`.
