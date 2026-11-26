@@ -6,6 +6,7 @@ import pe.ferreteria.dao.InventarioDAO;
 import pe.ferreteria.dao.KardexDAO;
 
 import pe.ferreteria.infraestructura.ConexionBD;
+import pe.ferreteria.infraestructura.Registro;
 import pe.ferreteria.modelo.Venta;
 import pe.ferreteria.modelo.DetalleVenta;
 
@@ -25,6 +26,9 @@ import pe.ferreteria.reporte.ProductoMasVendidoReporte;
 import pe.ferreteria.reporte.RendimientoVendedorReporte;
 
 public class VentaService {
+
+    private static final java.util.logging.Logger LOG =
+            Registro.de(VentaService.class);
 
     private final VentaDAO ventaDAO;
     private final DetalleVentaDAO detalleVentaDAO;
@@ -742,6 +746,10 @@ public class VentaService {
              */
             con.commit();
 
+            LOG.info("Venta registrada comprobante=" + venta.getNroComprobante()
+                    + " metodo_pago=" + venta.getMetodoPago()
+                    + " lineas=" + detalles.size());
+
             return true;
 
         } catch (Exception e) {
@@ -768,7 +776,8 @@ public class VentaService {
                 );
             }
 
-            e.printStackTrace();
+            LOG.log(java.util.logging.Level.SEVERE,
+                    "No se pudo registrar la venta (se revirtio la transaccion)", e);
 
             return false;
 

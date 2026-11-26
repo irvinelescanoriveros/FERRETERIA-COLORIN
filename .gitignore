@@ -14,3 +14,8 @@ config/ferreteria.properties
 comprobantes/
 reportes/
 etiquetas_defectuosos/
+
+
+# Respaldos y monitoreo
+logs/
+respaldo.cnf

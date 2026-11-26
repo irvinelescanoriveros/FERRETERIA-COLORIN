@@ -1,0 +1,5 @@
+# Copie este archivo como respaldo.cnf y escriba la clave real del usuario de respaldo.
+# respaldo.cnf esta en .gitignore: NUNCA se sube a GitHub.
+[client]
+user=colorin_respaldo
+password="CAMBIAR_ESTA_CLAVE"

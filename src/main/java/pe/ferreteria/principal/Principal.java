@@ -3,11 +3,21 @@ package pe.ferreteria.principal;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import pe.ferreteria.infraestructura.Registro;
 import pe.ferreteria.vista.LoginForm;
 
 public class Principal {
 
     public static void main(String[] args) {
+
+        Registro.iniciar();
+        Logger log = Registro.de(Principal.class);
+        log.info("Aplicacion iniciada");
+
+        Thread.setDefaultUncaughtExceptionHandler((hilo, error) ->
+                log.log(Level.SEVERE, "Error no controlado en " + hilo.getName(), error));
 
         try {
             for (UIManager.LookAndFeelInfo info :

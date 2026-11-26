@@ -2,12 +2,16 @@
 package pe.ferreteria.servicio;
 
 import pe.ferreteria.dao.UsuarioDAO;
+import pe.ferreteria.infraestructura.Registro;
 import pe.ferreteria.infraestructura.Seguridad;
 import pe.ferreteria.modelo.Usuario;
 
 import java.util.List;
 
 public class UsuarioService {
+
+    private static final java.util.logging.Logger LOG =
+            Registro.de(UsuarioService.class);
 
     private final UsuarioDAO usuarioDAO;
 
@@ -75,12 +79,14 @@ public class UsuarioService {
 
         if (usuario == null) {
             Seguridad.simularVerificacion(password);
+            LOG.warning("Login fallido: usuario inexistente o inactivo usuario=" + username);
             return null;
         }
 
         String guardada = usuario.getPassword();
 
         if (!Seguridad.verificar(password, guardada)) {
+            LOG.warning("Login fallido: contrasena incorrecta usuario=" + username);
             return null;
         }
 
@@ -90,6 +96,8 @@ public class UsuarioService {
                     Seguridad.hashear(password)
             );
         }
+
+        LOG.info("Login correcto usuario=" + username + " rol=" + usuario.getRol());
 
         usuario.setPassword(null);
 
