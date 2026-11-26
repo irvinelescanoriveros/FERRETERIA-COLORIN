@@ -1,5 +1,9 @@
 package pe.ferreteria.reporte;
 
+/**
+ * Rotación de un producto en el período.
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class RotacionProductoReporte {
 
     private int idInventario;

@@ -3,6 +3,10 @@ package pe.ferreteria.reporte;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Fila de detalle de ventas para los reportes.
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class DetalleVentaReporte {
 
     private LocalDateTime fechaVenta;

@@ -22,6 +22,10 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
+/**
+ * Capa de servicio de Dashboard: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class DashboardService {
 
     private final DashboardDAO dashboardDAO =

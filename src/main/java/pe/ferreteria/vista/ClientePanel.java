@@ -6,6 +6,10 @@ import javax.swing.table.DefaultTableModel;
 import pe.ferreteria.controlador.ClienteController;
 import pe.ferreteria.modelo.Cliente;
 
+/**
+ * Pantalla de gestión de clientes (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class ClientePanel extends javax.swing.JPanel {
 
     private final ClienteController clienteController = new ClienteController();

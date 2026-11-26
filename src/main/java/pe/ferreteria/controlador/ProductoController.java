@@ -4,6 +4,10 @@ import pe.ferreteria.modelo.Producto;
 import pe.ferreteria.servicio.ProductoService;
 import java.util.List;
 
+/**
+ * Controlador (MVC) de Producto: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class ProductoController {
 
     private final ProductoService productoService;

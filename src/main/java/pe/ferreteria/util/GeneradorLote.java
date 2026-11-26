@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Genera el código de lote de un producto a partir de la fecha.
+ */
 public class GeneradorLote {
 
     public static String generarNuevoLote(

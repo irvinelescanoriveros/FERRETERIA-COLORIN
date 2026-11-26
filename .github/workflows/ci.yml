@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '24'
+          java-version: '25'
           cache: maven
 
       - name: Ejecutar pruebas (JUnit 5 + Mockito) y generar cobertura (JaCoCo)
@@ -43,3 +43,12 @@ jobs:
         with:
           name: ferreteria-colorin-jar
           path: target/ferreteria-colorin.jar
+
+      - name: Generar Javadoc
+        run: mvn -B javadoc:javadoc
+
+      - name: Publicar Javadoc
+        uses: actions/upload-artifact@v4
+        with:
+          name: javadoc
+          path: target/site/apidocs

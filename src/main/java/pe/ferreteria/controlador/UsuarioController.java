@@ -5,6 +5,10 @@ import pe.ferreteria.servicio.UsuarioService;
 
 import java.util.List;
 
+/**
+ * Controlador (MVC) de Usuario: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class UsuarioController {
 
     private final UsuarioService usuarioService;

@@ -2,6 +2,10 @@ package pe.ferreteria.servicio;
 
 import pe.ferreteria.reporte.DatosReporteGerencial;
 
+/**
+ * Capa de servicio de ReporteGerencial: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class ReporteGerencialService {
 
     private final VentaService ventaService;

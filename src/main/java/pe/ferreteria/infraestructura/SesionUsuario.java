@@ -2,6 +2,10 @@ package pe.ferreteria.infraestructura;
 
 import pe.ferreteria.modelo.Usuario;
 
+/**
+ * Guarda el usuario que inició sesión durante la ejecución de la aplicación
+ * (sin contraseña) para consultar su rol y su identificador.
+ */
 public class SesionUsuario {
 
     private static Usuario usuarioActual;

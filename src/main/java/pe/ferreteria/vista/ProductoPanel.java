@@ -11,6 +11,10 @@ import pe.ferreteria.modelo.Producto;
 import pe.ferreteria.modelo.Categoria;
 import pe.ferreteria.modelo.Marca;
 
+/**
+ * Pantalla de gestión de productos, categorías y marcas (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class ProductoPanel extends javax.swing.JPanel {
 private final ProductoController productoController =
         new ProductoController();

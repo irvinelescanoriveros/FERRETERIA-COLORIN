@@ -1,0 +1,24 @@
+sequenceDiagram
+  actor U as Usuario
+  participant LF as LoginForm
+  participant LC as LoginController
+  participant US as UsuarioService
+  participant UD as UsuarioDAO
+  participant SG as Seguridad
+  participant DB as MySQL
+  U->>LF: usuario y contraseña
+  LF->>LC: iniciarSesion(user, pass)
+  LC->>US: autenticar(user, pass)
+  US->>UD: buscarActivoPorUsername(user)
+  UD->>DB: SELECT ... WHERE username=? AND activo=true
+  DB-->>UD: fila (hash o texto plano antiguo)
+  UD-->>US: Usuario
+  US->>SG: verificar(pass, almacenada)
+  SG-->>US: true / false
+  opt contraseña antigua
+    US->>SG: hashear(pass)
+    US->>UD: cambiarPassword(id, hash PBKDF2)
+  end
+  US-->>LC: Usuario sin contraseña (o null)
+  LC-->>LF: true / false (rechaza rol WEB)
+  LF-->>U: abre MainForm o muestra error

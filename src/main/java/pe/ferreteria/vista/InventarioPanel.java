@@ -17,6 +17,10 @@ import pe.ferreteria.modelo.Marca;
 import pe.ferreteria.modelo.Producto;
 import pe.ferreteria.modelo.Proveedor;
 
+/**
+ * Pantalla de gestión de inventario por lote (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class InventarioPanel extends javax.swing.JPanel {
 
     private static final int STOCK_POR_AGOTARSE = 2;

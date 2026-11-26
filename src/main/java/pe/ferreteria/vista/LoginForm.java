@@ -3,6 +3,10 @@ package pe.ferreteria.vista;
 
 import pe.ferreteria.controlador.LoginController;
 
+/**
+ * Ventana de inicio de sesión (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class LoginForm extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger =

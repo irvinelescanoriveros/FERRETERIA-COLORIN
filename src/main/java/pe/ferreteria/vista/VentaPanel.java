@@ -27,6 +27,10 @@ import pe.ferreteria.modelo.Categoria;
 import pe.ferreteria.modelo.Cliente;
 import pe.ferreteria.modelo.DetalleVenta;
 
+/**
+ * Pantalla de registro de ventas y emisión de comprobantes (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class VentaPanel extends javax.swing.JPanel {
 
     private final ClienteController clienteController

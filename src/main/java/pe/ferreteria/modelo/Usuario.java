@@ -1,5 +1,9 @@
 package pe.ferreteria.modelo;
 
+/**
+ * Entidad del dominio: representa un usuario del sistema y su rol.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Usuario {
 
     private int idUsuario;

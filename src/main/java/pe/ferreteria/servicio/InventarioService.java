@@ -7,6 +7,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import pe.ferreteria.reporte.RotacionProductoReporte;
 
+/**
+ * Capa de servicio de Inventario: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class InventarioService {
 
     private final InventarioDAO inventarioDAO;

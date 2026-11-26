@@ -1,5 +1,9 @@
 package pe.ferreteria.modelo;
 
+/**
+ * Entidad del dominio: representa un proveedor identificado por RUC.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Proveedor {
 
     private int idProveedor;

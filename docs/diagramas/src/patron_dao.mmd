@@ -1,0 +1,52 @@
+classDiagram
+  direction LR
+  class ConexionBD {
+    +conectar() Connection
+  }
+  class Configuracion {
+    +obtener(clave, variableEntorno, porDefecto) String
+  }
+  class UsuarioDAO {
+    +insertar(Usuario) boolean
+    +listar() List~Usuario~
+    +buscarActivoPorUsername(String) Usuario
+    +cambiarPassword(int, String) boolean
+  }
+  class ProductoDAO {
+    +insertar(Producto) boolean
+    +listar() List~Producto~
+    +existeCodigo(String, int) boolean
+  }
+  class InventarioDAO {
+    +buscarPorId(int) Inventario
+    +reducirStock(...) boolean
+  }
+  class VentaDAO {
+    +insertar(Venta) int
+    +obtenerSiguienteNumero(...) int
+  }
+  class UsuarioService {
+    -UsuarioDAO usuarioDAO
+    +UsuarioService(UsuarioDAO)
+    +autenticar(user, pass) Usuario
+    +registrar(Usuario) boolean
+  }
+  class VentaService {
+    -VentaDAO ventaDAO
+    -InventarioDAO inventarioDAO
+    +registrarVentaCompleta(...) boolean
+  }
+  class Usuario
+  class Producto
+  class Venta
+  UsuarioService --> UsuarioDAO : inyectado por constructor
+  VentaService --> VentaDAO
+  VentaService --> InventarioDAO
+  UsuarioDAO ..> ConexionBD
+  ProductoDAO ..> ConexionBD
+  InventarioDAO ..> ConexionBD
+  VentaDAO ..> ConexionBD
+  ConexionBD ..> Configuracion
+  UsuarioDAO ..> Usuario
+  ProductoDAO ..> Producto
+  VentaDAO ..> Venta

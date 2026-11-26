@@ -5,6 +5,10 @@ import javax.swing.table.DefaultTableModel;
 import pe.ferreteria.controlador.UsuarioController;
 import pe.ferreteria.modelo.Usuario;
 
+/**
+ * Pantalla de gestión de usuarios y contraseñas (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class UsuarioPanel extends javax.swing.JPanel {
 
 private final UsuarioController usuarioController = new UsuarioController();

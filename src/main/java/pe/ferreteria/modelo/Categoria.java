@@ -1,5 +1,9 @@
 package pe.ferreteria.modelo;
 
+/**
+ * Entidad del dominio: representa una categoría de productos.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Categoria {
 
     private int idCategoria;

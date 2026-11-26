@@ -7,6 +7,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import pe.ferreteria.reporte.RotacionProductoReporte;
 
+/**
+ * Controlador (MVC) de Inventario: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class InventarioController {
 
     private final InventarioService inventarioService;

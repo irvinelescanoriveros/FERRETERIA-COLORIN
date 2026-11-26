@@ -2,6 +2,10 @@ package pe.ferreteria.reporte;
 
 import java.math.BigDecimal;
 
+/**
+ * Fila del reporte de mermas (productos defectuosos).
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class MermaReporte {
 
     private int idKardex;

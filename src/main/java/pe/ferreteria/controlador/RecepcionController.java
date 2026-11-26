@@ -6,6 +6,10 @@ import pe.ferreteria.servicio.RecepcionService;
 
 import java.util.List;
 
+/**
+ * Controlador (MVC) de Recepcion: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class RecepcionController {
 
     private final RecepcionService recepcionService;

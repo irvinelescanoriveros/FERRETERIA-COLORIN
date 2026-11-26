@@ -15,6 +15,10 @@ import pe.ferreteria.modelo.DetalleCompra;
 import pe.ferreteria.modelo.Producto;
 import pe.ferreteria.modelo.Proveedor;
 
+/**
+ * Pantalla de registro de compras a proveedores (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class CompraPanel extends javax.swing.JPanel {
 private final ProveedorController proveedorController =
         new ProveedorController();

@@ -1,5 +1,9 @@
 package pe.ferreteria.modelo;
 
+/**
+ * Entidad del dominio: representa un cliente (persona natural con DNI o jurídica con RUC).
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Cliente {
 
     private int idCliente;

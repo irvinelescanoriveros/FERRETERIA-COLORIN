@@ -5,6 +5,10 @@ import pe.ferreteria.modelo.Proveedor;
 
 import java.util.List;
 
+/**
+ * Capa de servicio de Proveedor: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class ProveedorService {
 
     private final ProveedorDAO proveedorDAO;

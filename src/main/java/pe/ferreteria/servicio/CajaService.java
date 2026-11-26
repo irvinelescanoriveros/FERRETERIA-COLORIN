@@ -10,6 +10,10 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.util.List;
 
+/**
+ * Capa de servicio de Caja: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class CajaService {
 
     private final CajaDAO cajaDAO;

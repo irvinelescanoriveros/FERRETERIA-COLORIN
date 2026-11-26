@@ -3,6 +3,10 @@ package pe.ferreteria.modelo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entidad del dominio: representa la cabecera de una compra a proveedor.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Compra {
 
     private int idCompra;

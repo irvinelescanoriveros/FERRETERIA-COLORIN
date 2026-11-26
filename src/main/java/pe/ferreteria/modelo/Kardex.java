@@ -3,6 +3,10 @@ package pe.ferreteria.modelo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entidad del dominio: representa un movimiento de entrada o salida del Kardex.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Kardex {
 
     private int idKardex;

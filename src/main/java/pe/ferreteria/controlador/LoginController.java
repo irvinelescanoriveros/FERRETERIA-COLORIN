@@ -4,6 +4,10 @@ import pe.ferreteria.infraestructura.SesionUsuario;
 import pe.ferreteria.modelo.Usuario;
 import pe.ferreteria.servicio.UsuarioService;
 
+/**
+ * Controlador (MVC) de Login: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class LoginController {
 
     private final UsuarioService usuarioService;

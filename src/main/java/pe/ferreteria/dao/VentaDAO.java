@@ -18,6 +18,10 @@ import pe.ferreteria.reporte.EvolucionReporte;
 import pe.ferreteria.reporte.MetodoPagoReporte;
 import pe.ferreteria.reporte.RendimientoVendedorReporte;
 
+/**
+ * DAO (Data Access Object) de Venta: concentra las consultas JDBC (con PreparedStatement)
+ * sobre las tablas relacionadas. No contiene reglas de negocio.
+ */
 public class VentaDAO {
 
     public int insertar(Venta venta) {

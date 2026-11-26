@@ -6,6 +6,10 @@ import javax.swing.table.DefaultTableModel;
 import pe.ferreteria.controlador.ProveedorController;
 import pe.ferreteria.modelo.Proveedor;
 
+/**
+ * Pantalla de gestión de proveedores (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class ProveedorPanel extends javax.swing.JPanel {
 private final ProveedorController proveedorController =
         new ProveedorController();

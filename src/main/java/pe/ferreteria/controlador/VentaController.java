@@ -12,6 +12,10 @@ import pe.ferreteria.reporte.ProductoMasVendidoReporte;
 import pe.ferreteria.reporte.RendimientoVendedorReporte;
 import pe.ferreteria.servicio.VentaService;
 
+/**
+ * Controlador (MVC) de Venta: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class VentaController {
 
     private final VentaService ventaService;

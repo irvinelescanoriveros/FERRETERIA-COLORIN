@@ -138,6 +138,24 @@
                 </executions>
             </plugin>
 
+
+            <!-- Documentación Javadoc: mvn javadoc:javadoc  ->  target/site/apidocs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <charset>UTF-8</charset>
+                    <locale>es</locale>
+                    <doclint>none</doclint>
+                    <quiet>true</quiet>
+                    <windowtitle>SGIVFC - API</windowtitle>
+                    <doctitle>SGIVFC - Sistema de Gestión de Inventario y Ventas para Ferretería Colorín</doctitle>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

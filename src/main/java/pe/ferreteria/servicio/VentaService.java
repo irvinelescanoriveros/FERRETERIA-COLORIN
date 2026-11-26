@@ -25,6 +25,10 @@ import pe.ferreteria.reporte.MetodoPagoReporte;
 import pe.ferreteria.reporte.ProductoMasVendidoReporte;
 import pe.ferreteria.reporte.RendimientoVendedorReporte;
 
+/**
+ * Capa de servicio de Venta: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class VentaService {
 
     private static final java.util.logging.Logger LOG =

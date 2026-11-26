@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import pe.ferreteria.modelo.Recepcion;
 
+/**
+ * DAO (Data Access Object) de Recepcion: concentra las consultas JDBC (con PreparedStatement)
+ * sobre las tablas relacionadas. No contiene reglas de negocio.
+ */
 public class RecepcionDAO {
 
     public List<Compra> listarComprasPendientesRecepcion() {

@@ -9,6 +9,10 @@ import javax.swing.JPanel;
 import pe.ferreteria.modelo.Dashboard;
 import pe.ferreteria.servicio.DashboardService;
 
+/**
+ * Controlador (MVC) de Dashboard: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class DashboardController {
 
     private final DashboardService dashboardService =

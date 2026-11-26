@@ -8,6 +8,10 @@ import java.util.logging.Logger;
 import pe.ferreteria.infraestructura.Registro;
 import pe.ferreteria.vista.LoginForm;
 
+/**
+ * Punto de entrada de la aplicación de escritorio: configura el registro de eventos
+ * y abre la ventana de inicio de sesión.
+ */
 public class Principal {
 
     public static void main(String[] args) {

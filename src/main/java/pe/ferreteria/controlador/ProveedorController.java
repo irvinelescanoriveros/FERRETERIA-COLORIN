@@ -5,6 +5,10 @@ import pe.ferreteria.servicio.ProveedorService;
 
 import java.util.List;
 
+/**
+ * Controlador (MVC) de Proveedor: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class ProveedorController {
 
     private final ProveedorService proveedorService;

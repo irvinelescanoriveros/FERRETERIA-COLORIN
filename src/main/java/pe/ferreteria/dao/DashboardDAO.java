@@ -11,6 +11,10 @@ import java.util.List;
 import pe.ferreteria.infraestructura.ConexionBD;
 import pe.ferreteria.modelo.Dashboard;
 
+/**
+ * DAO (Data Access Object) de Dashboard: concentra las consultas JDBC (con PreparedStatement)
+ * sobre las tablas relacionadas. No contiene reglas de negocio.
+ */
 public class DashboardDAO {
 
     /*

@@ -2,6 +2,10 @@ package pe.ferreteria.reporte;
 
 import java.math.BigDecimal;
 
+/**
+ * Total de ventas por método de pago.
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class MetodoPagoReporte {
 
     private String metodoPago;

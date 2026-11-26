@@ -22,7 +22,7 @@ La arquitectura separa las aplicaciones por sus responsabilidades, mientras que 
 - **Conector de base de datos:** MySQL Connector/J 9.5.0.
 - **Generación de documentos PDF:** OpenPDF 3.0.5.
 - **Gráficos estadísticos:** JFreeChart 1.5.6.
-- **Registro de eventos:** Logback, configurado mediante `logback.xml`.
+- **Registro de eventos:** `java.util.logging` mediante la clase `Registro` (líneas JSON en `logs/`), sin dependencias externas.
 
 El proyecto Maven utiliza el grupo `pe.ferreteria`, la versión `1.0-SNAPSHOT`, el empaquetado `jar` y la clase principal `pe.ferreteria.principal.Principal`.
 
@@ -84,9 +84,6 @@ FERRETERIA-SISTEMA/
 │   │   │   ├── infraestructura/
 │   │   │   ├── util/
 │   │   │   └── principal/
-│   │   └── resources/
-│   │       ├── configuracion.properties
-│   │       └── logback.xml
 │   └── test/java/pe/ferreteria/
 ├── database/
 │   ├── 01_creacion_bd.sql

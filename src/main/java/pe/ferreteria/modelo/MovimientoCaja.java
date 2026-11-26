@@ -3,6 +3,10 @@ package pe.ferreteria.modelo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Entidad del dominio: representa un ingreso o egreso de dinero en una caja.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class MovimientoCaja {
 
     private int idMovimientoCaja;

@@ -1,0 +1,27 @@
+sequenceDiagram
+  actor V as Vendedor
+  participant VP as VentaPanel
+  participant VC as VentaController
+  participant VS as VentaService
+  participant DB as MySQL (una transaccion)
+  V->>VP: confirma la venta
+  VP->>VC: registrarVentaCompleta(...)
+  VC->>VS: registrarVentaCompleta(...)
+  VS->>DB: setAutoCommit(false)
+  VS->>DB: caja abierta (CajaDAO)
+  VS->>DB: numero de comprobante (VentaDAO)
+  VS->>DB: INSERT Venta
+  loop cada producto
+    VS->>DB: leer lote y validar stock (InventarioDAO)
+    VS->>DB: INSERT Detalle_Venta
+    VS->>DB: reducir stock del lote
+    VS->>DB: INSERT Kardex (salida)
+  end
+  VS->>DB: INSERT Movimiento_Caja y actualizar totales de Caja
+  alt todo correcto
+    VS->>DB: commit
+    VS-->>VP: true (se genera el PDF del comprobante)
+  else error
+    VS->>DB: rollback
+    VS-->>VP: false
+  end

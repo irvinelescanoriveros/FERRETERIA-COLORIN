@@ -9,6 +9,10 @@ import pe.ferreteria.modelo.DetalleCompra;
 import java.sql.Connection;
 import java.util.List;
 
+/**
+ * Capa de servicio de Compra: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class CompraService {
 
     private final CompraDAO compraDAO;

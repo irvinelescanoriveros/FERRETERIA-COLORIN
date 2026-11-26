@@ -1,5 +1,9 @@
 package pe.ferreteria.vista;
 
+/**
+ * Pantalla de recepción de compras (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class RecepcionPanel extends javax.swing.JPanel {
 private final pe.ferreteria.controlador.RecepcionController recepcionController =
         new pe.ferreteria.controlador.RecepcionController();

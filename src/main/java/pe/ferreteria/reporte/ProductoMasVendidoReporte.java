@@ -2,6 +2,10 @@ package pe.ferreteria.reporte;
 
 import java.math.BigDecimal;
 
+/**
+ * Producto más vendido del período.
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class ProductoMasVendidoReporte {
 
     private int idProducto;

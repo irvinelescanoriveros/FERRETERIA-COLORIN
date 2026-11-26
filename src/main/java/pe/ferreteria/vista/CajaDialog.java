@@ -24,6 +24,10 @@ import pe.ferreteria.modelo.Caja;
 import pe.ferreteria.modelo.MovimientoCaja;
 import pe.ferreteria.servicio.CajaService;
 
+/**
+ * Diálogo de apertura y cierre de caja (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class CajaDialog extends javax.swing.JDialog {
 
     private static final java.util.logging.Logger logger =

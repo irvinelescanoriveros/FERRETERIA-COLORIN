@@ -1,0 +1,6 @@
+# Copie este archivo como "ferreteria.properties" (o config/ferreteria.properties)
+# y complete los valores. NO suba el archivo real a GitHub.
+# Alternativa: variables de entorno DB_URL, DB_USERNAME, DB_PASSWORD.
+db.url=jdbc:mysql://localhost:3306/bd_colorin
+db.username=colorin_app
+db.password=CAMBIAR_ESTA_CLAVE

@@ -1,0 +1,30 @@
+flowchart TB
+  subgraph V["Vista (Swing) - pe.ferreteria.vista"]
+    LF[LoginForm]; MF[MainForm]; VP[VentaPanel]; PP[ProductoPanel]; IP[InventarioPanel]; OP[Otros paneles]
+  end
+  subgraph C["Controlador - pe.ferreteria.controlador"]
+    LC[LoginController]; VC[VentaController]; PC[ProductoController]; IC[InventarioController]
+  end
+  subgraph S["Servicio (reglas de negocio) - pe.ferreteria.servicio"]
+    US[UsuarioService]; VS[VentaService]; PS[ProductoService]; IS[InventarioService]
+  end
+  subgraph D["DAO (JDBC) - pe.ferreteria.dao"]
+    UD[UsuarioDAO]; VD[VentaDAO]; DVD[DetalleVentaDAO]; PD[ProductoDAO]; ID[InventarioDAO]
+  end
+  subgraph M["Modelo - pe.ferreteria.modelo"]
+    MO[Usuario, Venta, Producto, Inventario ...]
+  end
+  subgraph I["Infraestructura - pe.ferreteria.infraestructura"]
+    CN[ConexionBD]; CF[Configuracion]; SG[Seguridad]; RG[Registro]
+  end
+  DB[(MySQL bd_colorin)]
+  LF --> LC --> US --> UD
+  VP --> VC --> VS --> VD & DVD & ID
+  PP --> PC --> PS --> PD
+  IP --> IC --> IS --> ID
+  US --> SG
+  UD & VD & DVD & PD & ID --> CN --> CF
+  CN --> DB
+  S -.-> M
+  D -.-> M
+  S -.-> RG

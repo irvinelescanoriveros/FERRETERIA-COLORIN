@@ -19,6 +19,9 @@ import org.openpdf.text.pdf.PdfPCell;
 import org.openpdf.text.pdf.PdfPTable;
 import org.openpdf.text.pdf.PdfWriter;
 
+/**
+ * Genera en PDF la etiqueta de un producto defectuoso.
+ */
 public class GeneradorEtiquetaDefectuoso {
 
     private static final DateTimeFormatter FORMATO_FECHA =

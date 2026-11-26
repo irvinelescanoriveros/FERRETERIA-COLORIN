@@ -2,6 +2,10 @@ package pe.ferreteria.modelo;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entidad del dominio: representa la cabecera de la recepción de una compra.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Recepcion {
 
     private int idRecepcion;

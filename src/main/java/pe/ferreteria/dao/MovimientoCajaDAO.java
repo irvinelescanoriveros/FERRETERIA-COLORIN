@@ -10,6 +10,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO (Data Access Object) de MovimientoCaja: concentra las consultas JDBC (con PreparedStatement)
+ * sobre las tablas relacionadas. No contiene reglas de negocio.
+ */
 public class MovimientoCajaDAO {
 
     /*

@@ -2,6 +2,10 @@ package pe.ferreteria.reporte;
 
 import java.math.BigDecimal;
 
+/**
+ * Rendimiento de ventas de un vendedor.
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class RendimientoVendedorReporte {
 
     private int idUsuario;

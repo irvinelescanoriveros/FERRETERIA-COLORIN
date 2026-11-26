@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import pe.ferreteria.reporte.ProductoMasVendidoReporte;
 
+/**
+ * DAO (Data Access Object) de DetalleVenta: concentra las consultas JDBC (con PreparedStatement)
+ * sobre las tablas relacionadas. No contiene reglas de negocio.
+ */
 public class DetalleVentaDAO {
 
     public int insertar(DetalleVenta detalleVenta) {

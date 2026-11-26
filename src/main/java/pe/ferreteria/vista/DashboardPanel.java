@@ -34,6 +34,10 @@ import pe.ferreteria.util.GeneradorReporteAnualPDF;
 import pe.ferreteria.util.GeneradorReporteDiarioPDF;
 import pe.ferreteria.util.GeneradorReporteMensualPDF;
 
+/**
+ * Panel de control con ventas, rendimiento y reportes gerenciales (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class DashboardPanel extends javax.swing.JPanel {
 
     private final DashboardController dashboardController =

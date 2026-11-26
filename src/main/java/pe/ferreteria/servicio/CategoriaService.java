@@ -5,6 +5,10 @@ import pe.ferreteria.modelo.Categoria;
 
 import java.util.List;
 
+/**
+ * Capa de servicio de Categoria: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class CategoriaService {
 
     private final CategoriaDAO categoriaDAO;

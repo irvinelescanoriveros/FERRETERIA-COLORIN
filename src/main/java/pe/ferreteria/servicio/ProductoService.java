@@ -4,6 +4,10 @@ import pe.ferreteria.dao.ProductoDAO;
 import pe.ferreteria.modelo.Producto;
 import java.util.List;
 
+/**
+ * Capa de servicio de Producto: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class ProductoService {
 
     private final ProductoDAO productoDAO;

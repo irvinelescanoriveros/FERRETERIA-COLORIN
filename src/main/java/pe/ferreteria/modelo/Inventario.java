@@ -4,6 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Entidad del dominio: representa un lote de un producto con su stock, precios, descuento y ubicación.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class Inventario {
 
     private int idInventario;

@@ -3,6 +3,10 @@ package pe.ferreteria.reporte;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Conjunto de datos de un reporte gerencial (ventas, rendimiento, rotación y mermas).
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class DatosReporteGerencial {
 
     private BigDecimal totalVendido;

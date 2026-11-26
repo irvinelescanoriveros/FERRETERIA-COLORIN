@@ -2,6 +2,10 @@ package pe.ferreteria.reporte;
 
 import java.math.BigDecimal;
 
+/**
+ * Punto de la evolución de ventas en el tiempo.
+ * Objeto de transferencia de datos (DTO) de solo lectura para los reportes.
+ */
 public class EvolucionReporte {
 
     private String periodo;

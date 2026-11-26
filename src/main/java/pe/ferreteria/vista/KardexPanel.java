@@ -23,6 +23,10 @@ import pe.ferreteria.servicio.UsuarioService;
 import pe.ferreteria.util.GeneradorEtiquetaDefectuoso;
 import pe.ferreteria.util.GeneradorPDF;
 
+/**
+ * Pantalla de consulta del Kardex y gestión de productos defectuosos (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class KardexPanel extends javax.swing.JPanel {
 
     private final KardexController kardexController

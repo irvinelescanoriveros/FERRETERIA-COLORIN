@@ -22,6 +22,9 @@ import org.openpdf.text.pdf.PdfWriter;
 import pe.ferreteria.reporte.DatosReporteGerencial;
 import pe.ferreteria.reporte.EvolucionReporte;
 
+/**
+ * Genera el reporte gerencial mensual en PDF.
+ */
 public class GeneradorReporteMensualPDF {
 
     public Path generar(

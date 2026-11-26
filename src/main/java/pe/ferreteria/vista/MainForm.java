@@ -6,6 +6,10 @@ import pe.ferreteria.modelo.Caja;
 import pe.ferreteria.modelo.Usuario;
 import pe.ferreteria.servicio.CajaService;
 
+/**
+ * Ventana principal con el menú de módulos según el rol del usuario (Java Swing). Capa de vista del patrón MVC: solo presenta datos y
+ * delega la lógica en los controladores.
+ */
 public class MainForm extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MainForm.class.getName());

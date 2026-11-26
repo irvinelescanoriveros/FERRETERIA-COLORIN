@@ -7,6 +7,10 @@ import pe.ferreteria.modelo.Kardex;
 import pe.ferreteria.reporte.MermaReporte;
 import pe.ferreteria.servicio.KardexService;
 
+/**
+ * Controlador (MVC) de Kardex: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class KardexController {
 
     private final KardexService kardexService;

@@ -2,6 +2,10 @@ package pe.ferreteria.modelo;
 
 import java.math.BigDecimal;
 
+/**
+ * Entidad del dominio: representa una línea de venta asociada a un lote de inventario.
+ * Sus datos se almacenan en la base de datos <code>bd_colorin</code>.
+ */
 public class DetalleVenta {
 
     private int idDetalle;

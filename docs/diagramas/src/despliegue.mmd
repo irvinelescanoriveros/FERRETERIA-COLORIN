@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph PC["PC de la tienda"]
+    ESC["Escritorio Swing<br/>ferreteria-colorin.jar (Java 24+)"]
+  end
+  subgraph SRV["Servidor / Docker Compose"]
+    WEB["Backend web Spring Boot<br/>:8080 (Java 21)<br/>/actuator/health"]
+    DB[("MySQL 8.4 :3306<br/>bd_colorin")]
+    CRON["cron: respaldo.sh, revisar-salud.sh"]
+    BK[("/var/backups/colorin")]
+  end
+  CLI["Navegador del cliente"]
+  GH["GitHub Actions: pruebas, CodeQL, JAR"]
+  ESC -->|JDBC colorin_app| DB
+  WEB -->|JDBC colorin_app| DB
+  CLI -->|HTTP| WEB
+  CRON --> DB
+  CRON --> BK
+  GH -.artefacto JAR.-> ESC

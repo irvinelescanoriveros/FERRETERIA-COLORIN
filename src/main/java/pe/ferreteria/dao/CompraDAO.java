@@ -10,6 +10,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * DAO (Data Access Object) de Compra: concentra las consultas JDBC (con PreparedStatement)
+ * sobre las tablas relacionadas. No contiene reglas de negocio.
+ */
 public class CompraDAO {
 
     public int insertar(Compra compra, Connection conexion) throws SQLException {

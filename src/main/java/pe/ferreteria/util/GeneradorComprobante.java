@@ -10,6 +10,9 @@ import pe.ferreteria.modelo.Inventario;
 import pe.ferreteria.modelo.Producto;
 import pe.ferreteria.modelo.Venta;
 
+/**
+ * Prepara los datos de boletas y facturas para su impresión.
+ */
 public class GeneradorComprobante {
 
     private GeneradorComprobante() {

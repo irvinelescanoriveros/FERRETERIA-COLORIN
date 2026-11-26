@@ -6,6 +6,10 @@ import pe.ferreteria.servicio.CompraService;
 
 import java.util.List;
 
+/**
+ * Controlador (MVC) de Compra: recibe las acciones de la vista y las delega en el servicio,
+ * sin acceder directamente a la base de datos.
+ */
 public class CompraController {
 
     private final CompraService compraService =

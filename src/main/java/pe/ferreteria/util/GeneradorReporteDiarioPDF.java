@@ -21,6 +21,9 @@ import org.openpdf.text.pdf.PdfWriter;
 import pe.ferreteria.reporte.DatosReporteGerencial;
 import pe.ferreteria.reporte.DetalleVentaReporte;
 
+/**
+ * Genera el reporte gerencial diario en PDF.
+ */
 public class GeneradorReporteDiarioPDF {
 
     public Path generar(

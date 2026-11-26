@@ -14,6 +14,10 @@ import pe.ferreteria.modelo.Kardex;
 import pe.ferreteria.reporte.MermaReporte;
 
 
+/**
+ * Capa de servicio de Kardex: aplica las reglas de negocio y coordina uno o más DAO.
+ * Admite inyección de los DAO por constructor para poder probarlo con Mockito.
+ */
 public class KardexService {
 
     private final KardexDAO kardexDAO;
