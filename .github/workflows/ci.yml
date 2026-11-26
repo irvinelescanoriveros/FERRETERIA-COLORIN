@@ -28,7 +28,7 @@ jobs:
 
       - name: Publicar informes de pruebas y cobertura
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: informes-pruebas
           path: |
@@ -39,7 +39,7 @@ jobs:
         run: mvn -B -DskipTests package
 
       - name: Publicar el JAR ejecutable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ferreteria-colorin-jar
           path: target/ferreteria-colorin.jar
@@ -48,7 +48,7 @@ jobs:
         run: mvn -B javadoc:javadoc
 
       - name: Publicar Javadoc
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: javadoc
           path: target/reports/apidocs
