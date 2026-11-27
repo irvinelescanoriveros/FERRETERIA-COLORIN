@@ -84,6 +84,43 @@ public class ProductoDAO {
         return lista;
     }
 
+    public List<Producto> listarTodos() {
+
+        List<Producto> lista = new ArrayList<>();
+        String sql = """
+            SELECT id_producto, codigo, nombre,
+                   id_categoria, id_marca, unidad,
+                   estante, nivel, descripcion, activo
+            FROM Producto
+            ORDER BY id_producto
+        """;
+
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Producto producto = new Producto();
+                producto.setIdProducto(rs.getInt("id_producto"));
+                producto.setCodigo(rs.getString("codigo"));
+                producto.setNombre(rs.getString("nombre"));
+                producto.setIdCategoria(rs.getInt("id_categoria"));
+                producto.setIdMarca(rs.getInt("id_marca"));
+                producto.setUnidad(rs.getString("unidad"));
+                producto.setEstante(rs.getString("estante"));
+                producto.setNivel(rs.getString("nivel"));
+                producto.setDescripcion(rs.getString("descripcion"));
+                producto.setActivo(rs.getBoolean("activo"));
+                lista.add(producto);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
     public boolean actualizar(Producto producto) {
 
         String sql = """
@@ -119,18 +156,19 @@ public class ProductoDAO {
         }
     }
 
-    public boolean eliminar(int idProducto) {
+    public boolean cambiarEstado(int idProducto, boolean activo) {
 
         String sql = """
             UPDATE Producto
-            SET activo = false
+            SET activo = ?
             WHERE id_producto = ?
         """;
 
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, idProducto);
+            ps.setBoolean(1, activo);
+            ps.setInt(2, idProducto);
 
             return ps.executeUpdate() > 0;
 

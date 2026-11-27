@@ -83,13 +83,21 @@ class ProductoServiceTest {
     }
 
     @Test
-    @DisplayName("Eliminar: se delega al DAO con el id indicado")
-    void eliminarSeDelegaAlDao() {
-        when(productoDAO.eliminar(3)).thenReturn(true);
+    @DisplayName("Cambiar estado: se delega al DAO con el id y el estado indicados")
+    void cambiarEstadoSeDelegaAlDao() {
+        when(productoDAO.cambiarEstado(3, false)).thenReturn(true);
 
-        assertTrue(servicio.eliminar(3));
+        assertTrue(servicio.cambiarEstado(3, false));
 
-        verify(productoDAO).eliminar(3);
+        verify(productoDAO).cambiarEstado(3, false);
+    }
+
+    @Test
+    @DisplayName("Cambiar estado: un id inválido no llega a la base de datos")
+    void cambiarEstadoConIdInvalidoNoLlegaAlDao() {
+        assertFalse(servicio.cambiarEstado(0, true));
+
+        verify(productoDAO, never()).cambiarEstado(anyInt(), anyBoolean());
     }
 
     @Test

@@ -45,12 +45,14 @@
                                   <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="txtBuscarCodigo" min="-2" pref="121" max="-2" attributes="0"/>
+                                  <EmptySpace min="-2" pref="205" max="-2" attributes="0"/>
+                                  <Component id="comboFiltroEstado" min="-2" pref="151" max="-2" attributes="0"/>
                                   <EmptySpace max="32767" attributes="0"/>
                                   <Component id="btnEditar" min="-2" pref="194" max="-2" attributes="0"/>
                                   <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
                                   <Component id="btnLimpiar" min="-2" pref="194" max="-2" attributes="0"/>
                                   <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
-                                  <Component id="btnEliminar" min="-2" pref="194" max="-2" attributes="0"/>
+                                  <Component id="btnCambiarEstado" min="-2" pref="194" max="-2" attributes="0"/>
                               </Group>
                               <Component id="jPanel3" alignment="1" max="32767" attributes="0"/>
                           </Group>
@@ -69,13 +71,14 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="jLabel7" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="txtBuscarCodigo" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="btnEliminar" alignment="3" min="-2" pref="42" max="-2" attributes="0"/>
+                      <Component id="btnCambiarEstado" alignment="3" min="-2" pref="42" max="-2" attributes="0"/>
                       <Component id="btnLimpiar" alignment="3" min="-2" pref="42" max="-2" attributes="0"/>
                       <Component id="btnEditar" alignment="3" min="-2" pref="42" max="-2" attributes="0"/>
+                      <Component id="comboFiltroEstado" alignment="0" min="-2" pref="43" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Component id="jPanel3" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -97,12 +100,12 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnEditarActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="btnEliminar">
+        <Component class="javax.swing.JButton" name="btnCambiarEstado">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Eliminar Producto de la tabla"/>
+            <Property name="text" type="java.lang.String" value="Cambiar estado"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnEliminarActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCambiarEstadoActionPerformed"/>
           </Events>
         </Component>
         <Container class="javax.swing.JPanel" name="jPanel2">
@@ -173,7 +176,7 @@
                                   <Group type="102" attributes="0">
                                       <Component id="btnMarcaMas" min="-2" pref="44" max="-2" attributes="0"/>
                                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                      <Component id="btnMarcaMenos" min="-2" pref="44" max="-2" attributes="0"/>
+                                      <Component id="btnEditarMarca" min="-2" pref="57" max="-2" attributes="0"/>
                                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                                   </Group>
                               </Group>
@@ -192,7 +195,7 @@
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
                               <Component id="btnCategoriaMas" min="-2" pref="44" max="-2" attributes="0"/>
                               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Component id="btnCategoriaMenos" min="-2" pref="44" max="-2" attributes="0"/>
+                              <Component id="btnEditarCategoria" min="-2" pref="64" max="-2" attributes="0"/>
                               <EmptySpace max="32767" attributes="0"/>
                           </Group>
                       </Group>
@@ -218,8 +221,8 @@
                                       <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
                                       <Component id="comboCategoria" alignment="3" min="-2" max="-2" attributes="0"/>
                                       <Component id="btnCategoriaMas" alignment="3" min="-2" pref="22" max="-2" attributes="0"/>
-                                      <Component id="btnCategoriaMenos" alignment="3" min="-2" pref="22" max="-2" attributes="0"/>
                                   </Group>
+                                  <Component id="btnEditarCategoria" alignment="0" min="-2" pref="22" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace min="-2" pref="16" max="-2" attributes="0"/>
                               <Component id="btnGuardar" min="-2" pref="47" max="-2" attributes="0"/>
@@ -235,10 +238,8 @@
                                       <Component id="comboMarca" alignment="3" min="-2" max="-2" attributes="0"/>
                                       <Component id="jLabel23" alignment="3" min="-2" max="-2" attributes="0"/>
                                   </Group>
-                                  <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-                                      <Component id="btnMarcaMas" alignment="3" min="-2" pref="22" max="-2" attributes="0"/>
-                                      <Component id="btnMarcaMenos" alignment="3" min="-2" pref="22" max="-2" attributes="0"/>
-                                  </Group>
+                                  <Component id="btnMarcaMas" alignment="0" min="-2" pref="22" max="-2" attributes="0"/>
+                                  <Component id="btnEditarMarca" alignment="0" min="-2" pref="22" max="-2" attributes="0"/>
                               </Group>
                               <EmptySpace max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="0" attributes="0">
@@ -427,26 +428,26 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCategoriaMasActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="btnMarcaMenos">
+            <Component class="javax.swing.JButton" name="btnEditarMarca">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Segoe UI" size="18" style="1"/>
+                  <Font name="Segoe UI" size="10" style="1"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="-"/>
+                <Property name="text" type="java.lang.String" value="Editar"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMarcaMenosActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnEditarMarcaActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="btnCategoriaMenos">
+            <Component class="javax.swing.JButton" name="btnEditarCategoria">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Segoe UI" size="18" style="1"/>
+                  <Font name="Segoe UI" size="10" style="1"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="-"/>
+                <Property name="text" type="java.lang.String" value="Editar"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCategoriaMenosActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnEditarCategoriaActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>
@@ -466,8 +467,8 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="jScrollPane2" max="32767" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="jScrollPane2" pref="1464" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -492,7 +493,7 @@
                 <Component class="javax.swing.JTable" name="tablaProductos">
                   <Properties>
                     <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-                      <Table columnCount="9" rowCount="0">
+                      <Table columnCount="10" rowCount="0">
                         <Column editable="true" title="ID" type="java.lang.Object"/>
                         <Column editable="true" title="Codigo" type="java.lang.Object"/>
                         <Column editable="true" title="Producto" type="java.lang.Object"/>
@@ -502,6 +503,7 @@
                         <Column editable="true" title="Estante" type="java.lang.Object"/>
                         <Column editable="true" title="Nivel" type="java.lang.Object"/>
                         <Column editable="true" title="Descripcion" type="java.lang.Object"/>
+                        <Column editable="true" title="Estado" type="java.lang.Object"/>
                       </Table>
                     </Property>
                     <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
@@ -526,6 +528,20 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtBuscarCodigoActionPerformed"/>
             <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtBuscarCodigoKeyReleased"/>
           </Events>
+        </Component>
+        <Component class="javax.swing.JComboBox" name="comboFiltroEstado">
+          <Properties>
+            <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+              <StringArray count="3">
+                <StringItem index="0" value="Activos"/>
+                <StringItem index="1" value="Inactivos"/>
+                <StringItem index="2" value="Todos"/>
+              </StringArray>
+            </Property>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+          </AuxValues>
         </Component>
       </SubComponents>
     </Container>

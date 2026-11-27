@@ -25,12 +25,16 @@ public class ClienteController {
         return clienteService.listar();
     }
 
+    public List<Cliente> listarTodos() {
+        return clienteService.listarTodos();
+    }
+
     public boolean actualizar(Cliente cliente) {
         return clienteService.actualizar(cliente);
     }
 
-    public boolean eliminar(int idCliente) {
-        return clienteService.eliminar(idCliente);
+    public boolean cambiarEstado(int idCliente, boolean activo) {
+        return clienteService.cambiarEstado(idCliente, activo);
     }
 
     public boolean existeDni(String dni, int idCliente) {

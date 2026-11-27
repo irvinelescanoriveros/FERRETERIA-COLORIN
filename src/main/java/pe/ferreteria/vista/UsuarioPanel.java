@@ -20,13 +20,17 @@ private java.util.List<Usuario> listaUsuarios =
         
     }
     private void inicializarPanel() {
+    comboFiltroEstado.addActionListener(evt -> cargarUsuarios());
     cargarUsuarios();
     limpiarCampos();
 }
 
 private void cargarUsuarios() {
 
-    listaUsuarios = usuarioController.listar();
+    listaUsuarios = usuarioController.listarTodos();
+    String filtro = comboFiltroEstado.getSelectedItem() == null
+            ? "Activos"
+            : comboFiltroEstado.getSelectedItem().toString();
 
     DefaultTableModel modelo =
             (DefaultTableModel) tableUsuarios.getModel();
@@ -35,6 +39,14 @@ private void cargarUsuarios() {
 
     for (Usuario usuario : listaUsuarios) {
 
+        if ("Activos".equals(filtro) && !usuario.isActivo()) {
+            continue;
+        }
+
+        if ("Inactivos".equals(filtro) && usuario.isActivo()) {
+            continue;
+        }
+
         modelo.addRow(new Object[]{
             usuario.getIdUsuario(),
             usuario.getUsername(),
@@ -42,10 +54,21 @@ private void cargarUsuarios() {
             usuario.getApellidos(),
             usuario.getCorreo(),
             usuario.getRol(),
-            usuario.isActivo()
+            usuario.isActivo() ? "Activo" : "Inactivo"
         });
     }
 }
+
+private void actualizarTextoBotonEstado(Boolean activo) {
+    if (activo == null) {
+        btnCambiarEstado.setText("Cambiar estado");
+    } else if (activo) {
+        btnCambiarEstado.setText("Desactivar");
+    } else {
+        btnCambiarEstado.setText("Activar");
+    }
+}
+
 private void limpiarCampos() {
 
     txtID.setText("");
@@ -59,6 +82,7 @@ private void limpiarCampos() {
     comboRol.setSelectedIndex(0);
 
     tableUsuarios.clearSelection();
+    actualizarTextoBotonEstado(null);
 
     txtUsuario.requestFocus();
 }
@@ -107,6 +131,7 @@ private void cargarUsuarioSeleccionado() {
 
             txtContraseña.setText("");
             txtNuevaContraseña.setText("");
+            actualizarTextoBotonEstado(usuario.isActivo());
 
             break;
         }
@@ -215,7 +240,7 @@ if ("WEB".equals(comboRol.getSelectedItem())) {
         );
     }
 }
-private void eliminarUsuario() {
+private void cambiarEstadoUsuario() {
 
     if (txtID.getText().trim().isEmpty()) {
 
@@ -226,25 +251,51 @@ private void eliminarUsuario() {
         return;
     }
 
+    int idUsuario = Integer.parseInt(txtID.getText().trim());
+    Usuario seleccionado = null;
+
+    for (Usuario usuario : listaUsuarios) {
+        if (usuario.getIdUsuario() == idUsuario) {
+            seleccionado = usuario;
+            break;
+        }
+    }
+
+    if (seleccionado == null) {
+        return;
+    }
+
+    boolean nuevoEstado = !seleccionado.isActivo();
+    if (!nuevoEstado
+            && idUsuario == pe.ferreteria.infraestructura.SesionUsuario.getIdUsuario()) {
+        JOptionPane.showMessageDialog(
+                this,
+                "No puede desactivar su propio usuario."
+        );
+        return;
+    }
+
+    String accion = nuevoEstado ? "activar" : "desactivar";
     int respuesta = JOptionPane.showConfirmDialog(
-        this,
-        "¿Está seguro de eliminar este usuario?",
-        "Confirmar eliminación",
-        JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE
+            this,
+            "¿Está seguro de " + accion + " al usuario \""
+                    + seleccionado.getUsername() + "\"?",
+            "Confirmar cambio de estado",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
     );
 
     if (respuesta != JOptionPane.YES_OPTION) {
         return;
     }
 
-    int idUsuario = Integer.parseInt(txtID.getText().trim());
-
-    if (usuarioController.eliminar(idUsuario)) {
+    if (usuarioController.cambiarEstado(idUsuario, nuevoEstado)) {
 
         JOptionPane.showMessageDialog(
             this,
-            "Usuario eliminado correctamente."
+            nuevoEstado
+                    ? "Usuario activado correctamente."
+                    : "Usuario desactivado correctamente."
         );
 
         cargarUsuarios();
@@ -254,7 +305,7 @@ private void eliminarUsuario() {
 
         JOptionPane.showMessageDialog(
             this,
-            "No se pudo eliminar el usuario."
+            "No se pudo cambiar el estado del usuario."
         );
     }
 }
@@ -286,9 +337,10 @@ private void eliminarUsuario() {
         tableUsuarios = new javax.swing.JTable();
         jPanel5 = new javax.swing.JPanel();
         btnRegistrar = new javax.swing.JButton();
-        btnEliminar = new javax.swing.JButton();
+        btnCambiarEstado = new javax.swing.JButton();
         btnLimpiar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
+        comboFiltroEstado = new javax.swing.JComboBox<>();
 
         setBackground(new java.awt.Color(238, 238, 246));
 
@@ -425,13 +477,13 @@ private void eliminarUsuario() {
 
         tableUsuarios.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Usuario", "Nombre", "Apellido", "Correo", "Rol"
+                "ID", "Usuario", "Nombre", "Apellido", "Correo", "Rol", "Estado"
             }
         ));
         tableUsuarios.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -470,10 +522,10 @@ private void eliminarUsuario() {
             }
         });
 
-        btnEliminar.setText("Eliminar");
-        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+        btnCambiarEstado.setText("Cambiar estado");
+        btnCambiarEstado.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEliminarActionPerformed(evt);
+                btnCambiarEstadoActionPerformed(evt);
             }
         });
 
@@ -491,6 +543,8 @@ private void eliminarUsuario() {
             }
         });
 
+        comboFiltroEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Activos", "Inactivos", "Todos" }));
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -503,7 +557,9 @@ private void eliminarUsuario() {
                 .addGap(90, 90, 90)
                 .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(88, 88, 88)
-                .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnCambiarEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(124, 124, 124)
+                .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel5Layout.setVerticalGroup(
@@ -511,11 +567,12 @@ private void eliminarUsuario() {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(btnEliminar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(btnRegistrar, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(btnEditar, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnEditar, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnCambiarEstado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(comboFiltroEstado))
                 .addContainerGap(16, Short.MAX_VALUE))
         );
 
@@ -574,9 +631,9 @@ private void eliminarUsuario() {
      registrarUsuario();
     }//GEN-LAST:event_btnRegistrarActionPerformed
 
-    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-    eliminarUsuario();
-    }//GEN-LAST:event_btnEliminarActionPerformed
+    private void btnCambiarEstadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCambiarEstadoActionPerformed
+        cambiarEstadoUsuario();
+    }//GEN-LAST:event_btnCambiarEstadoActionPerformed
 
     private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
         limpiarCampos();
@@ -596,10 +653,11 @@ private void eliminarUsuario() {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCambiarEstado;
     private javax.swing.JButton btnEditar;
-    private javax.swing.JButton btnEliminar;
     private javax.swing.JButton btnLimpiar;
     private javax.swing.JButton btnRegistrar;
+    private javax.swing.JComboBox<String> comboFiltroEstado;
     private javax.swing.JComboBox<String> comboRol;
     private javax.swing.JLabel jLabel50;
     private javax.swing.JLabel jLabel51;

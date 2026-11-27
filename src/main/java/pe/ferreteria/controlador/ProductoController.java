@@ -24,12 +24,16 @@ public class ProductoController {
         return productoService.listar();
     }
 
+    public List<Producto> listarTodos() {
+        return productoService.listarTodos();
+    }
+
     public boolean actualizar(Producto producto) {
         return productoService.actualizar(producto);
     }
 
-    public boolean eliminar(int idProducto) {
-        return productoService.eliminar(idProducto);
+    public boolean cambiarEstado(int idProducto, boolean activo) {
+        return productoService.cambiarEstado(idProducto, activo);
     }
 
     public boolean existeCodigo(String codigo, int idProducto) {

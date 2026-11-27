@@ -18,6 +18,10 @@ private java.util.List<Proveedor> listaProveedores =
 
    public ProveedorPanel() {
     initComponents();
+    comboFiltroEstado.addActionListener(evt -> {
+        limpiarCampos();
+        buscarProveedor();
+    });
     inicializarPanel();
 }
    private void inicializarPanel() {
@@ -27,7 +31,7 @@ private java.util.List<Proveedor> listaProveedores =
 
 private void cargarProveedores() {
 
-    listaProveedores = proveedorController.listar();
+    listaProveedores = proveedorController.listarTodos();
 
     DefaultTableModel modelo =
             (DefaultTableModel) tableProveedor.getModel();
@@ -36,6 +40,10 @@ private void cargarProveedores() {
 
     for (Proveedor proveedor : listaProveedores) {
 
+        if (!cumpleFiltroEstado(proveedor.isActivo())) {
+            continue;
+        }
+
         modelo.addRow(new Object[]{
             proveedor.getIdProveedor(),
             proveedor.getEmpresa(),
@@ -43,8 +51,28 @@ private void cargarProveedores() {
             proveedor.getContacto(),
             proveedor.getTelefono(),
             proveedor.getCorreo(),
-            proveedor.getDireccion()
+            proveedor.getDireccion(),
+            proveedor.isActivo() ? "Activo" : "Inactivo"
         });
+    }
+}
+
+private boolean cumpleFiltroEstado(boolean activo) {
+    String filtro = String.valueOf(comboFiltroEstado.getSelectedItem());
+    if ("Activos".equals(filtro)) {
+        return activo;
+    }
+    if ("Inactivos".equals(filtro)) {
+        return !activo;
+    }
+    return true;
+}
+
+private void actualizarTextoBotonEstado(Boolean activo) {
+    if (activo == null) {
+        btnCambiarEstado.setText("Cambiar estado");
+    } else {
+        btnCambiarEstado.setText(activo ? "Desactivar" : "Activar");
     }
 }
 
@@ -61,6 +89,7 @@ private void limpiarCampos() {
     txtRUC.setEditable(true);
 
     tableProveedor.clearSelection();
+    actualizarTextoBotonEstado(null);
 
     txtEmpresa.requestFocus();
 }
@@ -89,6 +118,7 @@ private void cargarProveedorSeleccionado() {
 
             txtEmpresa.setEditable(false);
             txtRUC.setEditable(false);
+            actualizarTextoBotonEstado(proveedor.isActivo());
 
             break;
         }
@@ -247,7 +277,7 @@ private void editarProveedor() {
                 "No se pudo actualizar el proveedor.");
     }
 }
-private void eliminarProveedor() {
+private void cambiarEstadoProveedor() {
 
     int fila = tableProveedor.getSelectedRow();
 
@@ -261,10 +291,19 @@ private void eliminarProveedor() {
             tableProveedor.getValueAt(fila, 0).toString()
     );
 
+    Proveedor seleccionado = listaProveedores.stream()
+            .filter(p -> p.getIdProveedor() == idProveedor)
+            .findFirst().orElse(null);
+    if (seleccionado == null) {
+        return;
+    }
+    boolean nuevoEstado = !seleccionado.isActivo();
+
+    String accion = nuevoEstado ? "activar" : "desactivar";
     int respuesta = JOptionPane.showConfirmDialog(
             this,
-            "¿Está seguro de eliminar este proveedor?",
-            "Confirmar eliminación",
+            "¿Está seguro de " + accion + " este proveedor?",
+            "Confirmar cambio de estado",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
     );
@@ -273,10 +312,12 @@ private void eliminarProveedor() {
         return;
     }
 
-    if (proveedorController.eliminar(idProveedor)) {
+    if (proveedorController.cambiarEstado(idProveedor, nuevoEstado)) {
 
         JOptionPane.showMessageDialog(this,
-                "Proveedor eliminado correctamente.");
+                nuevoEstado
+                        ? "Proveedor activado correctamente."
+                        : "Proveedor desactivado correctamente.");
 
         cargarProveedores();
         limpiarCampos();
@@ -284,7 +325,7 @@ private void eliminarProveedor() {
     } else {
 
         JOptionPane.showMessageDialog(this,
-                "No se pudo eliminar el proveedor.");
+                "No se pudo cambiar el estado del proveedor.");
     }
 }
 private void buscarProveedor() {
@@ -298,12 +339,16 @@ private void buscarProveedor() {
 
     for (Proveedor proveedor : listaProveedores) {
 
-        if (proveedor.getEmpresa().toLowerCase().contains(texto)
-                || proveedor.getRuc().contains(texto)
-                || proveedor.getContacto().toLowerCase().contains(texto)
-                || proveedor.getTelefono().contains(texto)
-                || proveedor.getCorreo().toLowerCase().contains(texto)
-                || proveedor.getDireccion().toLowerCase().contains(texto)) {
+        if (!cumpleFiltroEstado(proveedor.isActivo())) {
+            continue;
+        }
+
+        if (contiene(proveedor.getEmpresa(), texto)
+                || contiene(proveedor.getRuc(), texto)
+                || contiene(proveedor.getContacto(), texto)
+                || contiene(proveedor.getTelefono(), texto)
+                || contiene(proveedor.getCorreo(), texto)
+                || contiene(proveedor.getDireccion(), texto)) {
 
             modelo.addRow(new Object[]{
                 proveedor.getIdProveedor(),
@@ -312,11 +357,16 @@ private void buscarProveedor() {
                 proveedor.getContacto(),
                 proveedor.getTelefono(),
                 proveedor.getCorreo(),
-                proveedor.getDireccion()
+                proveedor.getDireccion(),
+                proveedor.isActivo() ? "Activo" : "Inactivo"
             });
         }
     }
 } 
+
+private boolean contiene(String valor, String texto) {
+    return valor != null && valor.toLowerCase().contains(texto);
+}
 
 private void limpiarBusqueda() {
     txtBuscarProveedor.setText("");
@@ -345,7 +395,7 @@ private void limpiarBusqueda() {
         btnLimpiar = new javax.swing.JButton();
         btnGuardar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
-        btnEliminar = new javax.swing.JButton();
+        btnCambiarEstado = new javax.swing.JButton();
         jSeparator18 = new javax.swing.JSeparator();
         jScrollPane6 = new javax.swing.JScrollPane();
         tableProveedor = new javax.swing.JTable();
@@ -353,6 +403,7 @@ private void limpiarBusqueda() {
         txtTelefono = new javax.swing.JTextField();
         txtCorreo = new javax.swing.JTextField();
         jLabel50 = new javax.swing.JLabel();
+        comboFiltroEstado = new javax.swing.JComboBox<>();
 
         setBackground(new java.awt.Color(255, 250, 242));
 
@@ -409,22 +460,22 @@ private void limpiarBusqueda() {
             }
         });
 
-        btnEliminar.setText("Eliminar");
-        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+        btnCambiarEstado.setText("Cambiar estado");
+        btnCambiarEstado.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEliminarActionPerformed(evt);
+                btnCambiarEstadoActionPerformed(evt);
             }
         });
 
         tableProveedor.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Empresa", "RUC", "Contacto", "Telefono", "Correo", "Direccion"
+                "ID", "Empresa", "RUC", "Contacto", "Telefono", "Correo", "Direccion", "Estado"
             }
         ));
         tableProveedor.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -443,6 +494,8 @@ private void limpiarBusqueda() {
         });
 
         jLabel50.setText("Buscar:");
+
+        comboFiltroEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Activos", "Inactivos", "Todos" }));
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -481,27 +534,28 @@ private void limpiarBusqueda() {
                 .addComponent(txtContacto, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jPanel7Layout.createSequentialGroup()
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel43))
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addGap(32, 32, 32)
-                        .addComponent(jLabel50)
-                        .addGap(42, 42, 42)
-                        .addComponent(txtBuscarProveedor, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(129, 129, 129)
-                        .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(97, 97, 97)
-                        .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(87, 87, 87)
-                        .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(115, 115, 115)
-                        .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap()
+                .addComponent(jLabel43)
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addComponent(jScrollPane6)
                 .addContainerGap())
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(36, 36, 36)
+                .addComponent(jLabel50)
+                .addGap(40, 40, 40)
+                .addComponent(txtBuscarProveedor, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(40, 40, 40)
+                .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(40, 40, 40)
+                .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(52, 52, 52)
+                .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(60, 60, 60)
+                .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnCambiarEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(31, 31, 31))
         );
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -533,15 +587,15 @@ private void limpiarBusqueda() {
                     .addComponent(txtCorreo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator17, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGap(18, 18, Short.MAX_VALUE)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
+                    .addComponent(btnCambiarEstado, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
+                    .addComponent(btnEditar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(txtBuscarProveedor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel50))
-                    .addComponent(btnEliminar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
-                    .addComponent(btnEditar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnLimpiar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnLimpiar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtBuscarProveedor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel50))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator18, javax.swing.GroupLayout.PREFERRED_SIZE, 3, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -584,9 +638,9 @@ private void limpiarBusqueda() {
     editarProveedor();
     }//GEN-LAST:event_btnEditarActionPerformed
 
-    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        eliminarProveedor();
-    }//GEN-LAST:event_btnEliminarActionPerformed
+    private void btnCambiarEstadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCambiarEstadoActionPerformed
+        cambiarEstadoProveedor();
+    }//GEN-LAST:event_btnCambiarEstadoActionPerformed
 
     private void tableProveedorMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableProveedorMouseClicked
         cargarProveedorSeleccionado();
@@ -606,10 +660,11 @@ private void limpiarBusqueda() {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCambiarEstado;
     private javax.swing.JButton btnEditar;
-    private javax.swing.JButton btnEliminar;
     private javax.swing.JButton btnGuardar;
     private javax.swing.JButton btnLimpiar;
+    private javax.swing.JComboBox<String> comboFiltroEstado;
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
     private javax.swing.JLabel jLabel45;

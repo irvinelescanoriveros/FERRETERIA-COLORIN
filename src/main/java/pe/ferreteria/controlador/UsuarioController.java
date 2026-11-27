@@ -25,12 +25,16 @@ public class UsuarioController {
         return usuarioService.listar();
     }
 
+    public List<Usuario> listarTodos() {
+        return usuarioService.listarTodos();
+    }
+
     public boolean actualizar(Usuario usuario) {
         return usuarioService.actualizar(usuario);
     }
 
-    public boolean eliminar(int idUsuario) {
-        return usuarioService.eliminar(idUsuario);
+    public boolean cambiarEstado(int idUsuario, boolean activo) {
+        return usuarioService.cambiarEstado(idUsuario, activo);
     }
 
     public boolean existeUsername(String username) {

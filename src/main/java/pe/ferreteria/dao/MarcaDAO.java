@@ -69,18 +69,19 @@ public class MarcaDAO {
         return lista;
     }
 
-    public boolean eliminar(int idMarca) {
+    public boolean actualizar(Marca marca) {
 
         String sql = """
             UPDATE Marca
-            SET activo = false
+            SET nombre = ?
             WHERE id_marca = ?
         """;
 
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, idMarca);
+            ps.setString(1, marca.getNombre());
+            ps.setInt(2, marca.getIdMarca());
 
             return ps.executeUpdate() > 0;
 

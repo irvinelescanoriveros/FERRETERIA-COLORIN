@@ -25,12 +25,16 @@ public class ProveedorController {
         return proveedorService.listar();
     }
 
+    public List<Proveedor> listarTodos() {
+        return proveedorService.listarTodos();
+    }
+
     public boolean actualizar(Proveedor proveedor) {
         return proveedorService.actualizar(proveedor);
     }
 
-    public boolean eliminar(int idProveedor) {
-        return proveedorService.eliminar(idProveedor);
+    public boolean cambiarEstado(int idProveedor, boolean activo) {
+        return proveedorService.cambiarEstado(idProveedor, activo);
     }
 
     public boolean existeRuc(String ruc, int idProveedor) {

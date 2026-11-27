@@ -14,7 +14,15 @@ public class MarcaService {
     private final MarcaDAO marcaDAO;
 
     public MarcaService() {
-        marcaDAO = new MarcaDAO();
+        this(new MarcaDAO());
+    }
+
+    /*
+     * Constructor con inyección de dependencias.
+     * Permite probar el servicio con un DAO simulado (Mockito).
+     */
+    public MarcaService(MarcaDAO marcaDAO) {
+        this.marcaDAO = marcaDAO;
     }
 
     public boolean registrar(Marca marca) {
@@ -25,11 +33,33 @@ public class MarcaService {
         return marcaDAO.listar();
     }
 
-    public boolean eliminar(int idMarca) {
-        return marcaDAO.eliminar(idMarca);
-    }
-
     public boolean existeNombre(String nombre, int idMarca) {
         return marcaDAO.existeNombre(nombre, idMarca);
+    }
+
+    public boolean actualizar(Marca marca) {
+
+        if (marca == null || marca.getIdMarca() <= 0) {
+            return false;
+        }
+
+        String nombre = marca.getNombre() == null
+                ? ""
+                : marca.getNombre().trim();
+
+        if (nombre.isEmpty()) {
+            return false;
+        }
+
+        // No se permite repetir el nombre de otro registro
+        if (marcaDAO.existeNombre(nombre, marca.getIdMarca())) {
+            return false;
+        }
+
+        Marca cambio = new Marca();
+        cambio.setIdMarca(marca.getIdMarca());
+        cambio.setNombre(nombre);
+
+        return marcaDAO.actualizar(cambio);
     }
 }

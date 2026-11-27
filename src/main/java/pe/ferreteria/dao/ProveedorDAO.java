@@ -78,6 +78,41 @@ public class ProveedorDAO {
         return lista;
     }
 
+    public List<Proveedor> listarTodos() {
+
+        List<Proveedor> lista = new ArrayList<>();
+
+        String sql = """
+            SELECT id_proveedor, empresa, ruc, contacto,
+                   telefono, correo, direccion, activo
+            FROM Proveedor
+            ORDER BY id_proveedor
+        """;
+
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Proveedor proveedor = new Proveedor();
+                proveedor.setIdProveedor(rs.getInt("id_proveedor"));
+                proveedor.setEmpresa(rs.getString("empresa"));
+                proveedor.setRuc(rs.getString("ruc"));
+                proveedor.setContacto(rs.getString("contacto"));
+                proveedor.setTelefono(rs.getString("telefono"));
+                proveedor.setCorreo(rs.getString("correo"));
+                proveedor.setDireccion(rs.getString("direccion"));
+                proveedor.setActivo(rs.getBoolean("activo"));
+                lista.add(proveedor);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+
     public boolean actualizar(Proveedor proveedor) {
 
         String sql = """
@@ -109,18 +144,19 @@ public class ProveedorDAO {
         }
     }
 
-    public boolean eliminar(int idProveedor) {
+    public boolean cambiarEstado(int idProveedor, boolean activo) {
 
         String sql = """
             UPDATE Proveedor
-            SET activo = false
+            SET activo = ?
             WHERE id_proveedor = ?
         """;
 
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, idProveedor);
+            ps.setBoolean(1, activo);
+            ps.setInt(2, idProveedor);
 
             return ps.executeUpdate() > 0;
 

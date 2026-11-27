@@ -4,6 +4,7 @@ package pe.ferreteria.servicio;
 import pe.ferreteria.dao.UsuarioDAO;
 import pe.ferreteria.infraestructura.Registro;
 import pe.ferreteria.infraestructura.Seguridad;
+import pe.ferreteria.infraestructura.SesionUsuario;
 import pe.ferreteria.modelo.Usuario;
 
 import java.util.List;
@@ -43,6 +44,10 @@ public class UsuarioService {
         return usuarioDAO.listar();
     }
 
+    public List<Usuario> listarTodos() {
+        return usuarioDAO.listarTodos();
+    }
+
     public List<Usuario> listarKardex() {
         return usuarioDAO.listarKardex();
     }
@@ -51,8 +56,25 @@ public class UsuarioService {
         return usuarioDAO.actualizar(usuario);
     }
 
-    public boolean eliminar(int idUsuario) {
-        return usuarioDAO.eliminar(idUsuario);
+    public boolean cambiarEstado(int idUsuario, boolean activo) {
+
+        if (idUsuario <= 0) {
+            return false;
+        }
+
+        if (!activo && idUsuario == SesionUsuario.getIdUsuario()) {
+            LOG.warning("Intento de desactivar la propia cuenta usuario_id="
+                    + idUsuario);
+            return false;
+        }
+
+        boolean cambiado = usuarioDAO.cambiarEstado(idUsuario, activo);
+        if (cambiado) {
+            LOG.info("Estado de usuario cambiado usuario_id=" + idUsuario
+                    + " activo=" + activo);
+        }
+
+        return cambiado;
     }
 
     public boolean existeUsername(String username) {

@@ -70,6 +70,35 @@ public class UsuarioDAO {
         return lista;
     }
 
+    public List<Usuario> listarTodos() {
+
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Usuario WHERE rol <> 'WEB' ORDER BY id_usuario";
+
+        try (Connection cn = ConexionBD.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Usuario usuario = new Usuario();
+                usuario.setIdUsuario(rs.getInt("id_usuario"));
+                usuario.setUsername(rs.getString("username"));
+                usuario.setNombre(rs.getString("nombre"));
+                usuario.setApellidos(rs.getString("apellidos"));
+                usuario.setCorreo(rs.getString("correo"));
+                usuario.setPassword(rs.getString("password"));
+                usuario.setRol(rs.getString("rol"));
+                usuario.setActivo(rs.getBoolean("activo"));
+                lista.add(usuario);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al listar todos los usuarios: " + e.getMessage());
+        }
+
+        return lista;
+    }
+
     public List<Usuario> listarKardex() {
 
         List<Usuario> lista = new ArrayList<>();
@@ -106,7 +135,7 @@ public class UsuarioDAO {
         String sql = """
                 UPDATE Usuario
                 SET username = ?, nombre = ?, apellidos = ?,
-                    correo = ?, rol = ?, activo = ?
+                    correo = ?, rol = ?
                 WHERE id_usuario = ?
                 """;
 
@@ -117,8 +146,7 @@ public class UsuarioDAO {
             ps.setString(3, usuario.getApellidos());
             ps.setString(4, usuario.getCorreo());
             ps.setString(5, usuario.getRol());
-            ps.setBoolean(6, usuario.isActivo());
-            ps.setInt(7, usuario.getIdUsuario());
+            ps.setInt(6, usuario.getIdUsuario());
 
             return ps.executeUpdate() > 0;
 
@@ -128,18 +156,19 @@ public class UsuarioDAO {
         }
     }
 
-    public boolean eliminar(int idUsuario) {
+    public boolean cambiarEstado(int idUsuario, boolean activo) {
 
-        String sql = "UPDATE Usuario SET activo = false WHERE id_usuario = ?";
+        String sql = "UPDATE Usuario SET activo = ? WHERE id_usuario = ?";
 
         try (Connection cn = ConexionBD.conectar(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            ps.setInt(1, idUsuario);
+            ps.setBoolean(1, activo);
+            ps.setInt(2, idUsuario);
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.out.println("Error al eliminar usuario: " + e.getMessage());
+            System.out.println("Error al cambiar el estado del usuario: " + e.getMessage());
             return false;
         }
     }

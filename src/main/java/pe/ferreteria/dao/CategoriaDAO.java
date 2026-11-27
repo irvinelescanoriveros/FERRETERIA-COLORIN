@@ -69,18 +69,19 @@ public class CategoriaDAO {
         return lista;
     }
 
-    public boolean eliminar(int idCategoria) {
+     public boolean actualizar(Categoria categoria) {
 
         String sql = """
             UPDATE Categoria
-            SET activo = false
+            SET nombre = ?
             WHERE id_categoria = ?
         """;
 
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, idCategoria);
+            ps.setString(1, categoria.getNombre());
+            ps.setInt(2, categoria.getIdCategoria());
 
             return ps.executeUpdate() > 0;
 

@@ -11,10 +11,16 @@ import java.util.List;
  */
 public class ClienteService {
 
+    private static final int ID_CONSUMIDOR_FINAL = 1;
+
     private final ClienteDAO clienteDAO;
 
     public ClienteService() {
-        clienteDAO = new ClienteDAO();
+        this(new ClienteDAO());
+    }
+
+    public ClienteService(ClienteDAO clienteDAO) {
+        this.clienteDAO = clienteDAO;
     }
 
     public boolean registrar(Cliente cliente) {
@@ -25,12 +31,22 @@ public class ClienteService {
         return clienteDAO.listar();
     }
 
+    public List<Cliente> listarTodos() {
+        return clienteDAO.listarTodos();
+    }
+
     public boolean actualizar(Cliente cliente) {
         return clienteDAO.actualizar(cliente);
     }
 
-    public boolean eliminar(int idCliente) {
-        return clienteDAO.eliminar(idCliente);
+    public boolean cambiarEstado(int idCliente, boolean activo) {
+        if (idCliente <= 0) {
+            return false;
+        }
+        if (!activo && idCliente == ID_CONSUMIDOR_FINAL) {
+            return false;
+        }
+        return clienteDAO.cambiarEstado(idCliente, activo);
     }
 
     public boolean existeDni(String dni, int idCliente) {

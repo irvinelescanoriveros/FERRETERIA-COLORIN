@@ -32,12 +32,19 @@ public class ProductoService {
         return productoDAO.listar();
     }
 
+    public List<Producto> listarTodos() {
+        return productoDAO.listarTodos();
+    }
+
     public boolean actualizar(Producto producto) {
         return productoDAO.actualizar(producto);
     }
 
-    public boolean eliminar(int idProducto) {
-        return productoDAO.eliminar(idProducto);
+    public boolean cambiarEstado(int idProducto, boolean activo) {
+        if (idProducto <= 0) {
+            return false;
+        }
+        return productoDAO.cambiarEstado(idProducto, activo);
     }
 
     public boolean existeCodigo(String codigo, int idProducto) {

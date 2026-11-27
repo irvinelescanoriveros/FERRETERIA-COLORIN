@@ -84,6 +84,41 @@ public class ClienteDAO {
         return lista;
     }
 
+    public List<Cliente> listarTodos() {
+
+        List<Cliente> lista = new ArrayList<>();
+        String sql = """
+                SELECT * FROM Cliente
+                ORDER BY id_cliente
+                """;
+
+        try (Connection cn = ConexionBD.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Cliente cliente = new Cliente();
+                cliente.setIdCliente(rs.getInt("id_cliente"));
+                cliente.setTipoCliente(rs.getString("tipo_cliente"));
+                cliente.setDni(rs.getString("dni"));
+                cliente.setRuc(rs.getString("ruc"));
+                cliente.setNombre(rs.getString("nombre"));
+                cliente.setApellidos(rs.getString("apellidos"));
+                cliente.setRazonSocial(rs.getString("razon_social"));
+                cliente.setContacto(rs.getString("contacto"));
+                cliente.setTelefono(rs.getString("telefono"));
+                cliente.setDireccion(rs.getString("direccion"));
+                cliente.setActivo(rs.getBoolean("activo"));
+                lista.add(cliente);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al listar clientes: " + e.getMessage());
+        }
+
+        return lista;
+    }
+
     public boolean actualizar(Cliente cliente) {
 
         String sql = """
@@ -116,23 +151,24 @@ public class ClienteDAO {
         }
     }
 
-    public boolean eliminar(int idCliente) {
+    public boolean cambiarEstado(int idCliente, boolean activo) {
 
         String sql = """
                 UPDATE Cliente
-                SET activo = false
+                SET activo = ?
                 WHERE id_cliente = ?
                 """;
 
         try (Connection cn = ConexionBD.conectar();
              PreparedStatement ps = cn.prepareStatement(sql)) {
 
-            ps.setInt(1, idCliente);
+            ps.setBoolean(1, activo);
+            ps.setInt(2, idCliente);
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.out.println("Error al eliminar cliente: " + e.getMessage());
+            System.out.println("Error al cambiar el estado del cliente: " + e.getMessage());
             return false;
         }
     }

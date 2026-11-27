@@ -76,6 +76,7 @@ public class VentaPanel extends javax.swing.JPanel {
         configurarTablaClientes();
         cargarClientes();
         limpiarDatosCliente();
+        seleccionarConsumidorPorDefecto();
 
         cargarDatosProductos();
         configurarTablaProductos();
@@ -1373,7 +1374,7 @@ public class VentaPanel extends javax.swing.JPanel {
         actualizarTotalesVenta();
     }
 
-    private void cancelarVenta() {
+   private void cancelarVenta() {
 
         int respuesta
                 = JOptionPane.showConfirmDialog(
@@ -1425,6 +1426,9 @@ public class VentaPanel extends javax.swing.JPanel {
 
         // Dejar nuevamente disponibles los campos
         txtCantidadVentaProducto.setEditable(true);
+
+        // Dejar nuevamente al Consumidor Final como cliente
+        seleccionarConsumidorPorDefecto();
 
         txtCantidadVentaProducto.requestFocus();
     }
@@ -1739,6 +1743,9 @@ if (!resultado) {
         comboMetododePago.setSelectedItem(
                 "Seleccionar"
         );
+
+        // Dejar nuevamente al Consumidor Final como cliente
+        seleccionarConsumidorPorDefecto();
     }
 
     private String obtenerTextoDescuento(
@@ -2226,7 +2233,29 @@ if (!resultado) {
 
         return null;
     }
+private void seleccionarConsumidorPorDefecto() {
 
+    // Cliente "Consumidor Final" (id 1): se deja listo en cada venta nueva
+    final int ID_CONSUMIDOR_FINAL = 1;
+
+    // Se quita cualquier búsqueda previa para que aparezca toda la lista
+    txtBuscarCliente.setText("");
+    cargarClientes();
+
+    for (int fila = 0; fila < TableBuscarCliente.getRowCount(); fila++) {
+
+        int idFila = Integer.parseInt(
+                TableBuscarCliente.getValueAt(fila, 0).toString()
+        );
+
+        if (idFila == ID_CONSUMIDOR_FINAL) {
+
+            TableBuscarCliente.setRowSelectionInterval(fila, fila);
+            cargarClienteSeleccionado();
+            return;
+        }
+    }
+}
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

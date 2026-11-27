@@ -25,8 +25,8 @@ public class MarcaController {
         return marcaService.listar();
     }
 
-    public boolean eliminar(int idMarca) {
-        return marcaService.eliminar(idMarca);
+    public boolean actualizar(Marca marca) {
+        return marcaService.actualizar(marca);
     }
 
     public boolean existeNombre(String nombre, int idMarca) {

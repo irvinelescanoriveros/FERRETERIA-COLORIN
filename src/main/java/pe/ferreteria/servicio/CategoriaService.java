@@ -1,3 +1,4 @@
+
 package pe.ferreteria.servicio;
 
 import pe.ferreteria.dao.CategoriaDAO;
@@ -14,7 +15,15 @@ public class CategoriaService {
     private final CategoriaDAO categoriaDAO;
 
     public CategoriaService() {
-        categoriaDAO = new CategoriaDAO();
+        this(new CategoriaDAO());
+    }
+
+    /*
+     * Constructor con inyección de dependencias.
+     * Permite probar el servicio con un DAO simulado (Mockito).
+     */
+    public CategoriaService(CategoriaDAO categoriaDAO) {
+        this.categoriaDAO = categoriaDAO;
     }
 
     public boolean registrar(Categoria categoria) {
@@ -25,11 +34,33 @@ public class CategoriaService {
         return categoriaDAO.listar();
     }
 
-    public boolean eliminar(int idCategoria) {
-        return categoriaDAO.eliminar(idCategoria);
-    }
-
     public boolean existeNombre(String nombre, int idCategoria) {
         return categoriaDAO.existeNombre(nombre, idCategoria);
+    }
+
+    public boolean actualizar(Categoria categoria) {
+
+        if (categoria == null || categoria.getIdCategoria() <= 0) {
+            return false;
+        }
+
+        String nombre = categoria.getNombre() == null
+                ? ""
+                : categoria.getNombre().trim();
+
+        if (nombre.isEmpty()) {
+            return false;
+        }
+
+        // No se permite repetir el nombre de otro registro
+        if (categoriaDAO.existeNombre(nombre, categoria.getIdCategoria())) {
+            return false;
+        }
+
+        Categoria cambio = new Categoria();
+        cambio.setIdCategoria(categoria.getIdCategoria());
+        cambio.setNombre(nombre);
+
+        return categoriaDAO.actualizar(cambio);
     }
 }

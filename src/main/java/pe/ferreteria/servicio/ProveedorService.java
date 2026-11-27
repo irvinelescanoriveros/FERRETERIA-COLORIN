@@ -14,7 +14,11 @@ public class ProveedorService {
     private final ProveedorDAO proveedorDAO;
 
     public ProveedorService() {
-        proveedorDAO = new ProveedorDAO();
+        this(new ProveedorDAO());
+    }
+
+    public ProveedorService(ProveedorDAO proveedorDAO) {
+        this.proveedorDAO = proveedorDAO;
     }
 
     public boolean registrar(Proveedor proveedor) {
@@ -25,12 +29,19 @@ public class ProveedorService {
         return proveedorDAO.listar();
     }
 
+    public List<Proveedor> listarTodos() {
+        return proveedorDAO.listarTodos();
+    }
+
     public boolean actualizar(Proveedor proveedor) {
         return proveedorDAO.actualizar(proveedor);
     }
 
-    public boolean eliminar(int idProveedor) {
-        return proveedorDAO.eliminar(idProveedor);
+    public boolean cambiarEstado(int idProveedor, boolean activo) {
+        if (idProveedor <= 0) {
+            return false;
+        }
+        return proveedorDAO.cambiarEstado(idProveedor, activo);
     }
 
     public boolean existeRuc(String ruc, int idProveedor) {

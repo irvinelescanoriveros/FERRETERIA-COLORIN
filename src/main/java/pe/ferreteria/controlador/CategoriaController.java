@@ -25,8 +25,8 @@ public class CategoriaController {
         return categoriaService.listar();
     }
 
-    public boolean eliminar(int idCategoria) {
-        return categoriaService.eliminar(idCategoria);
+    public boolean actualizar(Categoria categoria) {
+        return categoriaService.actualizar(categoria);
     }
 
     public boolean existeNombre(String nombre, int idCategoria) {

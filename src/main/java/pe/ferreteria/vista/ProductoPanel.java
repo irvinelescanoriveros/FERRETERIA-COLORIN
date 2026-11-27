@@ -39,6 +39,7 @@ private java.util.List<Marca> listaMarcas =
     private void inicializarPanel() {
     cargarCategorias();
     cargarMarcas();
+    comboFiltroEstado.addActionListener(evt -> buscarProducto());
     cargarProductos();
     limpiarCampos();
 }
@@ -65,25 +66,25 @@ private void cargarMarcas() {
 }
 private void cargarProductos() {
 
-    listaProductos = productoController.listar();
+    listaProductos = productoController.listarTodos();
+    listaCategorias = categoriaController.listar();
+    listaMarcas = marcaController.listar();
 
     DefaultTableModel modelo =
             (DefaultTableModel) tablaProductos.getModel();
 
     modelo.setRowCount(0);
 
-    java.util.List<Categoria> categorias =
-            categoriaController.listar();
-
-    java.util.List<Marca> marcas =
-            marcaController.listar();
-
     for (Producto producto : listaProductos) {
+
+        if (!cumpleFiltroEstado(producto.isActivo())) {
+            continue;
+        }
 
         String nombreCategoria = "";
         String nombreMarca = "";
 
-        for (Categoria categoria : categorias) {
+        for (Categoria categoria : listaCategorias) {
 
             if (categoria.getIdCategoria()
                     == producto.getIdCategoria()) {
@@ -93,7 +94,7 @@ private void cargarProductos() {
             }
         }
 
-        for (Marca marca : marcas) {
+        for (Marca marca : listaMarcas) {
 
             if (marca.getIdMarca()
                     == producto.getIdMarca()) {
@@ -112,10 +113,35 @@ private void cargarProductos() {
     producto.getUnidad(),
     producto.getEstante(),
     producto.getNivel(),
-    producto.getDescripcion()
+    producto.getDescripcion(),
+    producto.isActivo() ? "Activo" : "Inactivo"
 });
     }
 }
+
+private boolean cumpleFiltroEstado(boolean activo) {
+    Object seleccion = comboFiltroEstado.getSelectedItem();
+    String filtro = seleccion == null ? "Activos" : seleccion.toString();
+
+    if ("Activos".equals(filtro)) {
+        return activo;
+    }
+    if ("Inactivos".equals(filtro)) {
+        return !activo;
+    }
+    return true;
+}
+
+private void actualizarTextoBotonEstado(Boolean activo) {
+    if (activo == null) {
+        btnCambiarEstado.setText("Cambiar estado");
+    } else if (activo) {
+        btnCambiarEstado.setText("Desactivar");
+    } else {
+        btnCambiarEstado.setText("Activar");
+    }
+}
+
 private void limpiarCampos() {
 
     txtCodigoBarras.setText("");
@@ -139,6 +165,7 @@ private void limpiarCampos() {
     txtCodigoBarras.setEditable(true);
 
     tablaProductos.clearSelection();
+    actualizarTextoBotonEstado(null);
 
     txtCodigoBarras.requestFocus();
 }
@@ -323,7 +350,7 @@ private void cargarProductoSeleccionado() {
             tablaProductos.getValueAt(fila, 0).toString()
     );
 
-    for (Producto producto : productoController.listar()) {
+    for (Producto producto : listaProductos) {
 
         if (producto.getIdProducto() == idProducto) {
 
@@ -338,6 +365,7 @@ private void cargarProductoSeleccionado() {
             seleccionarUnidad(producto.getUnidad());
 
             txtCodigoBarras.setEditable(false);
+            actualizarTextoBotonEstado(producto.isActivo());
 
             break;
         }
@@ -423,7 +451,7 @@ private void editarProducto() {
                 "No se pudo actualizar el producto.");
     }
 }
-private void eliminarProducto() {
+private void cambiarEstadoProducto() {
 
     int fila = tablaProductos.getSelectedRow();
 
@@ -440,11 +468,25 @@ private void eliminarProducto() {
     String nombreProducto =
             tablaProductos.getValueAt(fila, 2).toString();
 
+    Producto seleccionado = null;
+    for (Producto producto : listaProductos) {
+        if (producto.getIdProducto() == idProducto) {
+            seleccionado = producto;
+            break;
+        }
+    }
+
+    if (seleccionado == null) {
+        return;
+    }
+
+    boolean nuevoEstado = !seleccionado.isActivo();
+    String accion = nuevoEstado ? "activar" : "desactivar";
     int respuesta = JOptionPane.showConfirmDialog(
             this,
-            "¿Está seguro de eliminar el producto \""
+            "¿Está seguro de " + accion + " el producto \""
                     + nombreProducto + "\"?",
-            "Confirmar eliminación",
+            "Confirmar cambio de estado",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
     );
@@ -453,10 +495,12 @@ private void eliminarProducto() {
         return;
     }
 
-    if (productoController.eliminar(idProducto)) {
+    if (productoController.cambiarEstado(idProducto, nuevoEstado)) {
 
         JOptionPane.showMessageDialog(this,
-                "Producto eliminado correctamente.");
+                nuevoEstado
+                        ? "Producto activado correctamente."
+                        : "Producto desactivado correctamente.");
 
         cargarProductos();
         limpiarCampos();
@@ -464,7 +508,7 @@ private void eliminarProducto() {
     } else {
 
         JOptionPane.showMessageDialog(this,
-                "No se pudo eliminar el producto.");
+                "No se pudo cambiar el estado del producto.");
     }
 }
 private void buscarProducto() {
@@ -478,6 +522,10 @@ private void buscarProducto() {
     modelo.setRowCount(0);
 
     for (Producto producto : listaProductos) {
+
+        if (!cumpleFiltroEstado(producto.isActivo())) {
+            continue;
+        }
 
         String nombreCategoria = "";
         String nombreMarca = "";
@@ -502,12 +550,15 @@ private void buscarProducto() {
             }
         }
 
+        String estante = producto.getEstante() == null ? "" : producto.getEstante();
+        String nivel = producto.getNivel() == null ? "" : producto.getNivel();
+
         if (producto.getCodigo().toLowerCase().contains(texto)
                 || producto.getNombre().toLowerCase().contains(texto)
                 || nombreCategoria.toLowerCase().contains(texto)
                 || producto.getUnidad().toLowerCase().contains(texto)
-                || producto.getEstante().toLowerCase().contains(texto)
-                || producto.getNivel().toLowerCase().contains(texto)
+                || estante.toLowerCase().contains(texto)
+                || nivel.toLowerCase().contains(texto)
                 || nombreMarca.toLowerCase().contains(texto)) {
 
             modelo.addRow(new Object[]{
@@ -519,11 +570,13 @@ private void buscarProducto() {
     producto.getUnidad(),
     producto.getEstante(),
     producto.getNivel(),
-    producto.getDescripcion()
+    producto.getDescripcion(),
+    producto.isActivo() ? "Activo" : "Inactivo"
 });
         }
     }
 }
+
 
 private void nuevaCategoria() {
 
@@ -570,59 +623,7 @@ private void nuevaCategoria() {
                 "No se pudo registrar la categoría.");
     }
 }
-private void eliminarCategoria() {
 
-    String nombreCategoria =
-            comboCategoria.getSelectedItem() != null
-                    ? comboCategoria.getSelectedItem().toString()
-                    : "";
-
-    if (nombreCategoria.isEmpty()) {
-        JOptionPane.showMessageDialog(this,
-                "Seleccione una categoría.");
-        return;
-    }
-
-    int idCategoria = -1;
-
-    for (Categoria categoria : categoriaController.listar()) {
-
-        if (categoria.getNombre().equals(nombreCategoria)) {
-            idCategoria = categoria.getIdCategoria();
-            break;
-        }
-    }
-
-    if (idCategoria == -1) {
-        return;
-    }
-
-    int respuesta = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar la categoría \""
-                    + nombreCategoria + "\"?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-    );
-
-    if (respuesta != JOptionPane.YES_OPTION) {
-        return;
-    }
-
-    if (categoriaController.eliminar(idCategoria)) {
-
-        JOptionPane.showMessageDialog(this,
-                "Categoría eliminada correctamente.");
-
-        cargarCategorias();
-
-    } else {
-
-        JOptionPane.showMessageDialog(this,
-                "No se pudo eliminar la categoría.");
-    }
-}
 private void nuevaMarca() {
 
     String nombre = JOptionPane.showInputDialog(
@@ -668,57 +669,161 @@ private void nuevaMarca() {
                 "No se pudo registrar la marca.");
     }
 }
-private void eliminarMarca() {
+private void editarCategoria() {
 
-    String nombreMarca =
+    String nombreActual =
+            comboCategoria.getSelectedItem() != null
+                    ? comboCategoria.getSelectedItem().toString()
+                    : "";
+
+    if (nombreActual.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+                "Seleccione una categoría.");
+        return;
+    }
+
+    Categoria seleccionada = null;
+
+    for (Categoria item : listaCategorias) {
+
+        if (item.getNombre().equals(nombreActual)) {
+            seleccionada = item;
+            break;
+        }
+    }
+
+    if (seleccionada == null) {
+        return;
+    }
+
+    Object ingresado = JOptionPane.showInputDialog(
+            this,
+            "Nuevo nombre:",
+            "Editar Categoría",
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            null,
+            nombreActual
+    );
+
+    if (ingresado == null) {
+        return;
+    }
+
+    String nuevoNombre = ingresado.toString().trim();
+
+    if (nuevoNombre.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+                "Ingrese el nombre.");
+        return;
+    }
+
+    if (nuevoNombre.equals(nombreActual)) {
+        return;
+    }
+
+    if (categoriaController.existeNombre(nuevoNombre, seleccionada.getIdCategoria())) {
+        JOptionPane.showMessageDialog(this,
+                "Ya existe un registro con ese nombre.");
+        return;
+    }
+
+    Categoria cambio = new Categoria();
+    cambio.setIdCategoria(seleccionada.getIdCategoria());
+    cambio.setNombre(nuevoNombre);
+
+    if (categoriaController.actualizar(cambio)) {
+
+        JOptionPane.showMessageDialog(this,
+                "Actualizado correctamente.");
+
+        cargarCategorias();
+        comboCategoria.setSelectedItem(nuevoNombre);
+        cargarProductos();
+
+    } else {
+
+        JOptionPane.showMessageDialog(this,
+                "No se pudo actualizar.");
+    }
+}
+
+private void editarMarca() {
+
+    String nombreActual =
             comboMarca.getSelectedItem() != null
                     ? comboMarca.getSelectedItem().toString()
                     : "";
 
-    if (nombreMarca.isEmpty()) {
+    if (nombreActual.isEmpty()) {
         JOptionPane.showMessageDialog(this,
                 "Seleccione una marca.");
         return;
     }
 
-    int idMarca = -1;
+    Marca seleccionada = null;
 
-    for (Marca marca : marcaController.listar()) {
+    for (Marca item : listaMarcas) {
 
-        if (marca.getNombre().equals(nombreMarca)) {
-            idMarca = marca.getIdMarca();
+        if (item.getNombre().equals(nombreActual)) {
+            seleccionada = item;
             break;
         }
     }
 
-    if (idMarca == -1) {
+    if (seleccionada == null) {
         return;
     }
 
-    int respuesta = JOptionPane.showConfirmDialog(
+    Object ingresado = JOptionPane.showInputDialog(
             this,
-            "¿Está seguro de eliminar la marca \""
-                    + nombreMarca + "\"?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
+            "Nuevo nombre:",
+            "Editar Marca",
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            null,
+            nombreActual
     );
 
-    if (respuesta != JOptionPane.YES_OPTION) {
+    if (ingresado == null) {
         return;
     }
 
-    if (marcaController.eliminar(idMarca)) {
+    String nuevoNombre = ingresado.toString().trim();
+
+    if (nuevoNombre.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+                "Ingrese el nombre.");
+        return;
+    }
+
+    if (nuevoNombre.equals(nombreActual)) {
+        return;
+    }
+
+    if (marcaController.existeNombre(nuevoNombre, seleccionada.getIdMarca())) {
+        JOptionPane.showMessageDialog(this,
+                "Ya existe un registro con ese nombre.");
+        return;
+    }
+
+    Marca cambio = new Marca();
+    cambio.setIdMarca(seleccionada.getIdMarca());
+    cambio.setNombre(nuevoNombre);
+
+    if (marcaController.actualizar(cambio)) {
 
         JOptionPane.showMessageDialog(this,
-                "Marca eliminada correctamente.");
+                "Actualizado correctamente.");
 
         cargarMarcas();
+        comboMarca.setSelectedItem(nuevoNombre);
+        cargarProductos();
 
     } else {
 
         JOptionPane.showMessageDialog(this,
-                "No se pudo eliminar la marca.");
+                "No se pudo actualizar.");
     }
 }
 private void seleccionarProducto() {
@@ -773,7 +878,7 @@ private void recargarDatos() {
         jPanel1 = new javax.swing.JPanel();
         btnLimpiar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
-        btnEliminar = new javax.swing.JButton();
+        btnCambiarEstado = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         txtCodigoBarras = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
@@ -795,13 +900,14 @@ private void recargarDatos() {
         jLabel23 = new javax.swing.JLabel();
         btnMarcaMas = new javax.swing.JButton();
         btnCategoriaMas = new javax.swing.JButton();
-        btnMarcaMenos = new javax.swing.JButton();
-        btnCategoriaMenos = new javax.swing.JButton();
+        btnEditarMarca = new javax.swing.JButton();
+        btnEditarCategoria = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tablaProductos = new javax.swing.JTable();
         jLabel7 = new javax.swing.JLabel();
         txtBuscarCodigo = new javax.swing.JTextField();
+        comboFiltroEstado = new javax.swing.JComboBox<>();
 
         jPanel1.setBackground(new java.awt.Color(255, 250, 242));
 
@@ -819,10 +925,10 @@ private void recargarDatos() {
             }
         });
 
-        btnEliminar.setText("Eliminar Producto de la tabla");
-        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+        btnCambiarEstado.setText("Cambiar estado");
+        btnCambiarEstado.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEliminarActionPerformed(evt);
+                btnCambiarEstadoActionPerformed(evt);
             }
         });
 
@@ -907,19 +1013,19 @@ private void recargarDatos() {
             }
         });
 
-        btnMarcaMenos.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        btnMarcaMenos.setText("-");
-        btnMarcaMenos.addActionListener(new java.awt.event.ActionListener() {
+        btnEditarMarca.setFont(new java.awt.Font("Segoe UI", 1, 10)); // NOI18N
+        btnEditarMarca.setText("Editar");
+        btnEditarMarca.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnMarcaMenosActionPerformed(evt);
+                btnEditarMarcaActionPerformed(evt);
             }
         });
 
-        btnCategoriaMenos.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        btnCategoriaMenos.setText("-");
-        btnCategoriaMenos.addActionListener(new java.awt.event.ActionListener() {
+        btnEditarCategoria.setFont(new java.awt.Font("Segoe UI", 1, 10)); // NOI18N
+        btnEditarCategoria.setText("Editar");
+        btnEditarCategoria.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCategoriaMenosActionPerformed(evt);
+                btnEditarCategoriaActionPerformed(evt);
             }
         });
 
@@ -969,7 +1075,7 @@ private void recargarDatos() {
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(btnMarcaMas, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnMarcaMenos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btnEditarMarca, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 471, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -983,7 +1089,7 @@ private void recargarDatos() {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnCategoriaMas, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnCategoriaMenos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnEditarCategoria, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         jPanel2Layout.setVerticalGroup(
@@ -1002,8 +1108,8 @@ private void recargarDatos() {
                                 .addComponent(jLabel22)
                                 .addComponent(jLabel6)
                                 .addComponent(comboCategoria, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnCategoriaMas, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnCategoriaMenos, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(btnCategoriaMas, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btnEditarCategoria, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(16, 16, 16)
                         .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
@@ -1015,9 +1121,8 @@ private void recargarDatos() {
                             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(comboMarca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(jLabel23))
-                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(btnMarcaMas, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnMarcaMenos, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(btnMarcaMas, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnEditarMarca, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
@@ -1044,7 +1149,7 @@ private void recargarDatos() {
 
             },
             new String [] {
-                "ID", "Codigo", "Producto", "Categoria", "Marca", "Unidad", "Estante", "Nivel", "Descripcion"
+                "ID", "Codigo", "Producto", "Categoria", "Marca", "Unidad", "Estante", "Nivel", "Descripcion", "Estado"
             }
         ));
         tablaProductos.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1059,7 +1164,7 @@ private void recargarDatos() {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addComponent(jScrollPane2)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 1464, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -1082,6 +1187,8 @@ private void recargarDatos() {
             }
         });
 
+        comboFiltroEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Activos", "Inactivos", "Todos" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -1095,12 +1202,14 @@ private void recargarDatos() {
                                 .addComponent(jLabel7)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txtBuscarCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(205, 205, 205)
+                                .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(26, 26, 26)
                                 .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(45, 45, 45)
-                                .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(btnCambiarEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -1113,12 +1222,13 @@ private void recargarDatos() {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel7)
                     .addComponent(txtBuscarCodigo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnCambiarEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnEditar, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -1141,9 +1251,9 @@ private void recargarDatos() {
     editarProducto();
     }//GEN-LAST:event_btnEditarActionPerformed
 
-    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-     eliminarProducto();
-    }//GEN-LAST:event_btnEliminarActionPerformed
+    private void btnCambiarEstadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCambiarEstadoActionPerformed
+     cambiarEstadoProducto();
+    }//GEN-LAST:event_btnCambiarEstadoActionPerformed
 
     private void txtCodigoBarrasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCodigoBarrasActionPerformed
 
@@ -1177,17 +1287,17 @@ private void recargarDatos() {
        nuevaCategoria(); // TODO add your handling code here:
     }//GEN-LAST:event_btnCategoriaMasActionPerformed
 
-    private void btnCategoriaMenosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCategoriaMenosActionPerformed
-eliminarCategoria();        // TODO add your handling code here:
-    }//GEN-LAST:event_btnCategoriaMenosActionPerformed
+    private void btnEditarCategoriaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarCategoriaActionPerformed
+editarCategoria();        // TODO add your handling code here:
+    }//GEN-LAST:event_btnEditarCategoriaActionPerformed
 
     private void btnMarcaMasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMarcaMasActionPerformed
 nuevaMarca();        // TODO add your handling code here:
     }//GEN-LAST:event_btnMarcaMasActionPerformed
 
-    private void btnMarcaMenosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMarcaMenosActionPerformed
-eliminarMarca();        // TODO add your handling code here:
-    }//GEN-LAST:event_btnMarcaMenosActionPerformed
+    private void btnEditarMarcaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarMarcaActionPerformed
+editarMarca();        // TODO add your handling code here:
+    }//GEN-LAST:event_btnEditarMarcaActionPerformed
 
     private void txtBuscarCodigoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtBuscarCodigoActionPerformed
        // TODO add your handling code here:
@@ -1199,15 +1309,16 @@ ejecutarBusquedaProducto();         // TODO add your handling code here:
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCambiarEstado;
     private javax.swing.JButton btnCategoriaMas;
-    private javax.swing.JButton btnCategoriaMenos;
     private javax.swing.JButton btnEditar;
-    private javax.swing.JButton btnEliminar;
+    private javax.swing.JButton btnEditarCategoria;
+    private javax.swing.JButton btnEditarMarca;
     private javax.swing.JButton btnGuardar;
     private javax.swing.JButton btnLimpiar;
     private javax.swing.JButton btnMarcaMas;
-    private javax.swing.JButton btnMarcaMenos;
     private javax.swing.JComboBox<String> comboCategoria;
+    private javax.swing.JComboBox<String> comboFiltroEstado;
     private javax.swing.JComboBox<String> comboMarca;
     private javax.swing.JComboBox<String> comboUnidad;
     private javax.swing.JLabel jLabel22;

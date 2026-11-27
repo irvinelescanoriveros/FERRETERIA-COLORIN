@@ -21,6 +21,7 @@ private java.util.List<Cliente> listaClientes =
     }
 
     private void inicializarPanel() {
+        comboFiltroEstado.addActionListener(evt -> buscarClientes());
         cargarClientes();
         actualizarCamposSegunTipo();
         limpiarCampos();
@@ -46,7 +47,7 @@ private java.util.List<Cliente> listaClientes =
     }
 private void cargarClientes() {
 
-    listaClientes = clienteController.listar();
+    listaClientes = clienteController.listarTodos();
 
     DefaultTableModel modelo =
             (DefaultTableModel) TableCliente.getModel();
@@ -54,6 +55,10 @@ private void cargarClientes() {
     modelo.setRowCount(0);
 
     for (Cliente cliente : listaClientes) {
+
+        if (!cumpleFiltroEstado(cliente.isActivo())) {
+            continue;
+        }
 
         String identificacion;
         String nombre;
@@ -78,10 +83,35 @@ private void cargarClientes() {
             nombre,
             apellidoContacto,
             cliente.getTelefono(),
-            cliente.getDireccion()
+            cliente.getDireccion(),
+            cliente.isActivo() ? "Activo" : "Inactivo"
         });
     }
 }
+
+private boolean cumpleFiltroEstado(boolean activo) {
+    Object seleccion = comboFiltroEstado.getSelectedItem();
+    String filtro = seleccion == null ? "Activos" : seleccion.toString();
+
+    if ("Activos".equals(filtro)) {
+        return activo;
+    }
+    if ("Inactivos".equals(filtro)) {
+        return !activo;
+    }
+    return true;
+}
+
+private void actualizarTextoBotonEstado(Boolean activo) {
+    if (activo == null) {
+        btnCambiarEstado.setText("Cambiar estado");
+    } else if (activo) {
+        btnCambiarEstado.setText("Desactivar");
+    } else {
+        btnCambiarEstado.setText("Activar");
+    }
+}
+
 private void limpiarCampos() {
 
     txtDNI.setText("");
@@ -99,6 +129,7 @@ private void limpiarCampos() {
     txtBusquedaEnTableClientes.setText("");
 
     TableCliente.clearSelection();
+    actualizarTextoBotonEstado(null);
 
     rbNatural.setSelected(true);
 
@@ -196,6 +227,8 @@ private void cargarClienteSeleccionado() {
 
         txtRUC.setEditable(false);
     }
+
+    actualizarTextoBotonEstado(cliente.isActivo());
 }
 private void guardarCliente() {
 
@@ -424,7 +457,7 @@ private void editarCliente() {
         );
     }
 }
-private void eliminarCliente() {
+private void cambiarEstadoCliente() {
 
     int fila = TableCliente.getSelectedRow();
 
@@ -440,10 +473,33 @@ private void eliminarCliente() {
             TableCliente.getValueAt(fila, 0).toString()
     );
 
+    Cliente seleccionado = null;
+    for (Cliente cliente : listaClientes) {
+        if (cliente.getIdCliente() == idCliente) {
+            seleccionado = cliente;
+            break;
+        }
+    }
+
+    if (seleccionado == null) {
+        return;
+    }
+
+    boolean nuevoEstado = !seleccionado.isActivo();
+    if (!nuevoEstado && idCliente == 1) {
+        JOptionPane.showMessageDialog(
+                this,
+                "El cliente Consumidor Final no se puede desactivar."
+        );
+        return;
+    }
+
+    String accion = nuevoEstado ? "activar" : "desactivar";
+
     int respuesta = JOptionPane.showConfirmDialog(
             this,
-            "¿Está seguro de eliminar este cliente?",
-            "Confirmar eliminación",
+            "¿Está seguro de " + accion + " este cliente?",
+            "Confirmar cambio de estado",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
     );
@@ -452,11 +508,13 @@ private void eliminarCliente() {
         return;
     }
 
-    if (clienteController.eliminar(idCliente)) {
+    if (clienteController.cambiarEstado(idCliente, nuevoEstado)) {
 
         JOptionPane.showMessageDialog(
                 this,
-                "Cliente eliminado correctamente."
+                nuevoEstado
+                        ? "Cliente activado correctamente."
+                        : "Cliente desactivado correctamente."
         );
 
         cargarClientes();
@@ -466,7 +524,7 @@ private void eliminarCliente() {
 
         JOptionPane.showMessageDialog(
                 this,
-                "No se pudo eliminar el cliente."
+                "No se pudo cambiar el estado del cliente."
         );
     }
 }
@@ -483,6 +541,10 @@ private void buscarClientes() {
     modelo.setRowCount(0);
 
     for (Cliente cliente : listaClientes) {
+
+        if (!cumpleFiltroEstado(cliente.isActivo())) {
+            continue;
+        }
 
         String identificacion;
         String nombre;
@@ -518,7 +580,8 @@ private void buscarClientes() {
                 nombre,
                 apellidoContacto,
                 cliente.getTelefono(),
-                cliente.getDireccion()
+                cliente.getDireccion(),
+                cliente.isActivo() ? "Activo" : "Inactivo"
             });
         }
     }
@@ -758,52 +821,6 @@ private void actualizarCliente() {
     }
 }    
 
-private void confirmarEliminacionCliente() {
-
-    int fila = TableCliente.getSelectedRow();
-
-    if (fila == -1) {
-        JOptionPane.showMessageDialog(
-                this,
-                "Seleccione un cliente de la tabla."
-        );
-        return;
-    }
-
-    int idCliente = Integer.parseInt(
-            TableCliente.getValueAt(fila, 0).toString()
-    );
-
-    int respuesta = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar este cliente?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-    );
-
-    if (respuesta != JOptionPane.YES_OPTION) {
-        return;
-    }
-
-    if (clienteController.eliminar(idCliente)) {
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Cliente eliminado correctamente."
-        );
-
-        cargarClientes();
-        limpiarCampos();
-
-    } else {
-
-        JOptionPane.showMessageDialog(
-                this,
-                "No se pudo eliminar el cliente."
-        );
-    }
-}
 private void seleccionarCliente() {
 
     cargarClienteSeleccionado();
@@ -833,7 +850,7 @@ private void ejecutarBusquedaCliente() {
         jLabel38 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         bntEditarCliente = new javax.swing.JButton();
-        btnEliminarCliente = new javax.swing.JButton();
+        btnCambiarEstado = new javax.swing.JButton();
         btnLimpiarTodo = new javax.swing.JButton();
         btnGuardarCliente = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
@@ -854,6 +871,7 @@ private void ejecutarBusquedaCliente() {
         txtBusquedaEnTableClientes = new javax.swing.JTextField();
         jScrollPane5 = new javax.swing.JScrollPane();
         TableCliente = new javax.swing.JTable();
+        comboFiltroEstado = new javax.swing.JComboBox<>();
 
         setBackground(new java.awt.Color(247, 252, 248));
 
@@ -937,10 +955,10 @@ private void ejecutarBusquedaCliente() {
             }
         });
 
-        btnEliminarCliente.setText("ELIMINAR");
-        btnEliminarCliente.addActionListener(new java.awt.event.ActionListener() {
+        btnCambiarEstado.setText("Cambiar estado");
+        btnCambiarEstado.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEliminarClienteActionPerformed(evt);
+                btnCambiarEstadoActionPerformed(evt);
             }
         });
 
@@ -966,8 +984,8 @@ private void ejecutarBusquedaCliente() {
                 .addGap(16, 16, 16)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnGuardarCliente, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
+                    .addComponent(btnCambiarEstado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnLimpiarTodo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnEliminarCliente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(bntEditarCliente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -979,7 +997,7 @@ private void ejecutarBusquedaCliente() {
                 .addGap(18, 18, 18)
                 .addComponent(bntEditarCliente, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(btnEliminarCliente, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnCambiarEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnLimpiarTodo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(20, Short.MAX_VALUE))
@@ -1140,13 +1158,13 @@ private void ejecutarBusquedaCliente() {
 
         TableCliente.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "DNI/RUC", "Nombre/Razon", "Apellido/Contacto", "Telefono", "Direccion"
+                "ID", "DNI/RUC", "Nombre/Razon", "Apellido/Contacto", "Telefono", "Direccion", "Estado"
             }
         ));
         TableCliente.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1155,6 +1173,8 @@ private void ejecutarBusquedaCliente() {
             }
         });
         jScrollPane5.setViewportView(TableCliente);
+
+        comboFiltroEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Activos", "Inactivos", "Todos" }));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -1169,7 +1189,10 @@ private void ejecutarBusquedaCliente() {
                 .addGap(22, 22, 22)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtBusquedaEnTableClientes, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(txtBusquedaEnTableClientes, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(64, 64, 64)
+                .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1179,7 +1202,9 @@ private void ejecutarBusquedaCliente() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel1)
-                    .addComponent(txtBusquedaEnTableClientes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(txtBusquedaEnTableClientes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(comboFiltroEstado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
                 .addContainerGap())
@@ -1190,9 +1215,9 @@ private void ejecutarBusquedaCliente() {
         actualizarCliente();
     }//GEN-LAST:event_bntEditarClienteActionPerformed
 
-    private void btnEliminarClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarClienteActionPerformed
-       confirmarEliminacionCliente();
-    }//GEN-LAST:event_btnEliminarClienteActionPerformed
+    private void btnCambiarEstadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCambiarEstadoActionPerformed
+       cambiarEstadoCliente();
+    }//GEN-LAST:event_btnCambiarEstadoActionPerformed
 
     private void btnLimpiarTodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarTodoActionPerformed
        limpiarCampos();
@@ -1226,12 +1251,13 @@ cambiarTipoCliente();        // TODO add your handling code here:
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable TableCliente;
     private javax.swing.JButton bntEditarCliente;
-    private javax.swing.JButton btnEliminarCliente;
+    private javax.swing.JButton btnCambiarEstado;
     private javax.swing.JButton btnGuardarCliente;
     private javax.swing.JButton btnLimpiarTodo;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
+    private javax.swing.JComboBox<String> comboFiltroEstado;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel36;
     private javax.swing.JLabel jLabel38;
