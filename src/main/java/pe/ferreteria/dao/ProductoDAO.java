@@ -205,6 +205,48 @@ public boolean existeCodigo(String codigo, int idProducto) {
 
     return false;
 }
+    public Producto buscarPorCodigo(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            return null;
+        }
+
+        String sql = """
+            SELECT id_producto, codigo, nombre,
+                   id_categoria, id_marca, unidad,
+                   estante, nivel, descripcion, activo
+            FROM Producto
+            WHERE codigo = ?
+              AND activo = 1
+            """;
+
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, codigo.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+
+                Producto producto = new Producto();
+                producto.setIdProducto(rs.getInt("id_producto"));
+                producto.setCodigo(rs.getString("codigo"));
+                producto.setNombre(rs.getString("nombre"));
+                producto.setIdCategoria(rs.getInt("id_categoria"));
+                producto.setIdMarca(rs.getInt("id_marca"));
+                producto.setUnidad(rs.getString("unidad"));
+                producto.setEstante(rs.getString("estante"));
+                producto.setNivel(rs.getString("nivel"));
+                producto.setDescripcion(rs.getString("descripcion"));
+                producto.setActivo(rs.getBoolean("activo"));
+                return producto;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Error al buscar el producto por código.", e);
+        }
+    }
+
     public Producto buscarParaDashboard(int idProducto) {
 
     String sql = """

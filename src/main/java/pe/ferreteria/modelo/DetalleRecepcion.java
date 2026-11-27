@@ -14,6 +14,7 @@ public class DetalleRecepcion {
     private String estado;
     private LocalDateTime fechaConfirmacion;
     private Integer cantidadRecibida;
+    private int cantidadDefectuosa;
     private String observacion;
 
     public DetalleRecepcion() {
@@ -80,6 +81,14 @@ public class DetalleRecepcion {
 
     public void setCantidadRecibida(Integer cantidadRecibida) {
         this.cantidadRecibida = cantidadRecibida;
+    }
+
+    public int getCantidadDefectuosa() {
+        return cantidadDefectuosa;
+    }
+
+    public void setCantidadDefectuosa(int cantidadDefectuosa) {
+        this.cantidadDefectuosa = cantidadDefectuosa;
     }
 
     public String getObservacion() {

@@ -82,4 +82,26 @@ public int completarRecepcionConInventarioYKardex(
                     cantidadRecibida
             );
 }
+
+public int procesarEscaneo(Compra compra,
+        pe.ferreteria.modelo.DetalleCompra detalle,
+        pe.ferreteria.modelo.Producto producto,
+        int idRecepcion, int idUsuario) {
+    return recepcionService.procesarEscaneo(
+            compra, detalle, producto, idRecepcion, idUsuario);
+}
+
+public String corregirRecepcion(int idRecepcion, Compra compra,
+        pe.ferreteria.modelo.DetalleCompra detalleCompra,
+        pe.ferreteria.modelo.Producto producto, int idUsuario,
+        boolean ingresarComoBueno, String comentario) {
+    return recepcionService.corregirRecepcion(idRecepcion, compra,
+            detalleCompra, producto, idUsuario, ingresarComoBueno, comentario);
+}
+
+public String observarRecepcion(int idRecepcion, int idDetalleCompra,
+        int cantidadDefectuosa, String observacion) {
+    return recepcionService.observarRecepcion(
+            idRecepcion, idDetalleCompra, cantidadDefectuosa, observacion);
+}
 }

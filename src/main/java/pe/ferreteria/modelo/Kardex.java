@@ -12,6 +12,7 @@ public class Kardex {
     private int idKardex;
     private int idProducto;
     private int idInventario;
+    private Integer idDetalleRecepcion;
     private int idUsuario;
     private LocalDateTime fechaMovimiento;
 
@@ -59,6 +60,14 @@ public class Kardex {
 
     public void setIdInventario(int idInventario) {
         this.idInventario = idInventario;
+    }
+
+    public Integer getIdDetalleRecepcion() {
+        return idDetalleRecepcion;
+    }
+
+    public void setIdDetalleRecepcion(Integer idDetalleRecepcion) {
+        this.idDetalleRecepcion = idDetalleRecepcion;
     }
 
     public int getIdUsuario() {

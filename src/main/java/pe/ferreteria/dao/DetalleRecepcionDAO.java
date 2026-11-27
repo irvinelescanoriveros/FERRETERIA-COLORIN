@@ -28,6 +28,7 @@ public class DetalleRecepcionDAO {
                 estado,
                 fecha_confirmacion,
                 cantidad_recibida,
+                cantidad_defectuosa,
                 observacion
             FROM Detalle_Recepcion
             WHERE id_recepcion = ?
@@ -77,6 +78,10 @@ public class DetalleRecepcionDAO {
                         detalle.setCantidadRecibida(cantidad);
                     }
 
+                    detalle.setCantidadDefectuosa(
+                            rs.getInt("cantidad_defectuosa")
+                    );
+
                     detalle.setObservacion(
                             rs.getString("observacion")
                     );
@@ -96,8 +101,9 @@ public class DetalleRecepcionDAO {
     String sql = """
         INSERT INTO Detalle_Recepcion
         (id_recepcion, id_detalle_compra, estado,
-         fecha_confirmacion, cantidad_recibida, observacion)
-        VALUES (?, ?, ?, ?, ?, ?)
+         fecha_confirmacion, cantidad_recibida,
+         cantidad_defectuosa, observacion)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
     try (Connection con = ConexionBD.conectar();
@@ -121,10 +127,11 @@ public class DetalleRecepcionDAO {
         if (detalle.getCantidadRecibida() != null) {
             ps.setInt(5, detalle.getCantidadRecibida());
         } else {
-            ps.setNull(5, java.sql.Types.INTEGER);
+            ps.setInt(5, 0);
         }
 
-        ps.setString(6, detalle.getObservacion());
+        ps.setInt(6, detalle.getCantidadDefectuosa());
+        ps.setString(7, detalle.getObservacion());
 
         return ps.executeUpdate() > 0;
 
@@ -140,12 +147,15 @@ public class DetalleRecepcionDAO {
     String sql = """
         INSERT INTO Detalle_Recepcion
         (id_recepcion, id_detalle_compra, estado,
-         fecha_confirmacion, cantidad_recibida, observacion)
-        VALUES (?, ?, ?, ?, ?, ?)
+         fecha_confirmacion, cantidad_recibida,
+         cantidad_defectuosa, observacion)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
     try (PreparedStatement ps =
-            con.prepareStatement(sql)) {
+            con.prepareStatement(
+                    sql,
+                    java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
         ps.setInt(
                 1,
@@ -188,18 +198,33 @@ public class DetalleRecepcionDAO {
 
         } else {
 
-            ps.setNull(
+            ps.setInt(
                     5,
-                    java.sql.Types.INTEGER
+                    0
             );
         }
 
-        ps.setString(
+        ps.setInt(
                 6,
+                detalle.getCantidadDefectuosa()
+        );
+
+        ps.setString(
+                7,
                 detalle.getObservacion()
         );
 
-        return ps.executeUpdate() > 0;
+        if (ps.executeUpdate() == 0) {
+            return false;
+        }
+
+        try (ResultSet keys = ps.getGeneratedKeys()) {
+            if (keys.next()) {
+                detalle.setIdDetalleRecepcion(keys.getInt(1));
+            }
+        }
+
+        return detalle.getIdDetalleRecepcion() > 0;
 
     } catch (SQLException e) {
 
@@ -222,6 +247,7 @@ public class DetalleRecepcionDAO {
             estado,
             fecha_confirmacion,
             cantidad_recibida,
+            cantidad_defectuosa,
             observacion
         FROM Detalle_Recepcion
         WHERE id_recepcion = ?
@@ -275,6 +301,10 @@ public class DetalleRecepcionDAO {
                     detalle.setCantidadRecibida(cantidad);
                 }
 
+                detalle.setCantidadDefectuosa(
+                        rs.getInt("cantidad_defectuosa")
+                );
+
                 detalle.setObservacion(
                         rs.getString("observacion")
                 );
@@ -289,6 +319,57 @@ public class DetalleRecepcionDAO {
 
     return null;
 }
+
+    public DetalleRecepcion buscarPorRecepcionYDetalleCompra(
+            Connection con,
+            int idRecepcion,
+            int idDetalleCompra) throws SQLException {
+
+        String sql = """
+            SELECT id_detalle_recepcion, id_recepcion,
+                   id_detalle_compra, estado, fecha_confirmacion,
+                   cantidad_recibida, cantidad_defectuosa, observacion
+            FROM Detalle_Recepcion
+            WHERE id_recepcion = ?
+              AND id_detalle_compra = ?
+            FOR UPDATE
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idRecepcion);
+            ps.setInt(2, idDetalleCompra);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+
+                DetalleRecepcion detalle = new DetalleRecepcion();
+                detalle.setIdDetalleRecepcion(
+                        rs.getInt("id_detalle_recepcion"));
+                detalle.setIdRecepcion(rs.getInt("id_recepcion"));
+                detalle.setIdDetalleCompra(
+                        rs.getInt("id_detalle_compra"));
+                detalle.setEstado(rs.getString("estado"));
+
+                java.sql.Timestamp confirmacion =
+                        rs.getTimestamp("fecha_confirmacion");
+                if (confirmacion != null) {
+                    detalle.setFechaConfirmacion(
+                            confirmacion.toLocalDateTime());
+                }
+
+                int recibidas = rs.getInt("cantidad_recibida");
+                detalle.setCantidadRecibida(
+                        rs.wasNull() ? null : recibidas);
+                detalle.setCantidadDefectuosa(
+                        rs.getInt("cantidad_defectuosa"));
+                detalle.setObservacion(rs.getString("observacion"));
+                return detalle;
+            }
+        }
+    }
+
     public boolean actualizar(DetalleRecepcion detalle) {
 
     String sql = """
@@ -296,6 +377,7 @@ public class DetalleRecepcionDAO {
         SET estado = ?,
             fecha_confirmacion = ?,
             cantidad_recibida = ?,
+            cantidad_defectuosa = ?,
             observacion = ?
         WHERE id_detalle_recepcion = ?
         """;
@@ -322,8 +404,9 @@ public class DetalleRecepcionDAO {
             ps.setNull(3, java.sql.Types.INTEGER);
         }
 
-        ps.setString(4, detalle.getObservacion());
-        ps.setInt(5, detalle.getIdDetalleRecepcion());
+        ps.setInt(4, detalle.getCantidadDefectuosa());
+        ps.setString(5, detalle.getObservacion());
+        ps.setInt(6, detalle.getIdDetalleRecepcion());
 
         return ps.executeUpdate() > 0;
 
@@ -341,6 +424,7 @@ public class DetalleRecepcionDAO {
         SET estado = ?,
             fecha_confirmacion = ?,
             cantidad_recibida = ?,
+            cantidad_defectuosa = ?,
             observacion = ?
         WHERE id_detalle_recepcion = ?
         """;
@@ -385,13 +469,18 @@ public class DetalleRecepcionDAO {
             );
         }
 
-        ps.setString(
+        ps.setInt(
                 4,
+                detalle.getCantidadDefectuosa()
+        );
+
+        ps.setString(
+                5,
                 detalle.getObservacion()
         );
 
         ps.setInt(
-                5,
+                6,
                 detalle.getIdDetalleRecepcion()
         );
 

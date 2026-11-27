@@ -662,6 +662,95 @@ public int insertar(
 
     return null;
 }
+    public Inventario buscarPorProductoYLote(
+            Connection con,
+            int idProducto,
+            String lote) {
+
+        String sql = """
+            SELECT id_inventario, id_producto, id_proveedor,
+                   lote, stock, stock_defectuoso, precio_compra,
+                   precio_venta, descuento_activo,
+                   descuento_porcentaje, fecha_ingreso,
+                   fecha_vencimiento, estante, nivel, activo
+            FROM Inventario
+            WHERE id_producto = ?
+              AND lote = ?
+            FOR UPDATE
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idProducto);
+            ps.setString(2, lote);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+
+                Inventario inventario = new Inventario();
+                inventario.setIdInventario(rs.getInt("id_inventario"));
+                inventario.setIdProducto(rs.getInt("id_producto"));
+                inventario.setIdProveedor(rs.getInt("id_proveedor"));
+                inventario.setLote(rs.getString("lote"));
+                inventario.setStock(rs.getInt("stock"));
+                inventario.setStockDefectuoso(
+                        rs.getInt("stock_defectuoso"));
+                inventario.setPrecioCompra(
+                        rs.getBigDecimal("precio_compra"));
+                inventario.setPrecioVenta(
+                        rs.getBigDecimal("precio_venta"));
+                inventario.setDescuentoActivo(
+                        rs.getBoolean("descuento_activo"));
+                inventario.setDescuentoPorcentaje(
+                        rs.getBigDecimal("descuento_porcentaje"));
+
+                java.sql.Timestamp ingreso =
+                        rs.getTimestamp("fecha_ingreso");
+                if (ingreso != null) {
+                    inventario.setFechaIngreso(ingreso.toLocalDateTime());
+                }
+
+                java.sql.Date vencimiento =
+                        rs.getDate("fecha_vencimiento");
+                if (vencimiento != null) {
+                    inventario.setFechaVencimiento(
+                            vencimiento.toLocalDate());
+                }
+
+                inventario.setEstante(rs.getString("estante"));
+                inventario.setNivel(rs.getString("nivel"));
+                inventario.setActivo(rs.getBoolean("activo"));
+                return inventario;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Error al buscar inventario por producto y lote.", e);
+        }
+    }
+
+    public boolean aumentarStockDefectuoso(
+            Connection con,
+            int idInventario,
+            int cantidad) {
+
+        String sql = """
+            UPDATE Inventario
+            SET stock_defectuoso = stock_defectuoso + ?
+            WHERE id_inventario = ?
+              AND activo = 1
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, cantidad);
+            ps.setInt(2, idInventario);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Error al aumentar el stock defectuoso.", e);
+        }
+    }
+
     public boolean aumentarStock(
         Connection con,
         int idInventario,

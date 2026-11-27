@@ -1354,4 +1354,140 @@ public List<MermaReporte> listarMermaReporte(
 
     return lista;
 }
+
+    public Kardex buscarPorDetalleRecepcion(
+            Connection con,
+            int idDetalleRecepcion) {
+
+        String sql = """
+            SELECT id_kardex, id_producto, id_inventario,
+                   id_detalle_recepcion, id_usuario,
+                   fecha_movimiento, movimiento, motivo_movimiento,
+                   cantidad, stock_antes, stock_despues,
+                   stock_defectuoso_antes, stock_defectuoso_despues,
+                   precio_unitario, tipo_referencia, id_referencia,
+                   nro_comprobante, motivo
+            FROM Kardex
+            WHERE id_detalle_recepcion = ?
+            FOR UPDATE
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idDetalleRecepcion);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return null;
+                }
+
+                Kardex movimiento = new Kardex();
+                movimiento.setIdKardex(rs.getInt("id_kardex"));
+                movimiento.setIdProducto(rs.getInt("id_producto"));
+                movimiento.setIdInventario(rs.getInt("id_inventario"));
+                movimiento.setIdDetalleRecepcion(
+                        rs.getInt("id_detalle_recepcion"));
+                movimiento.setIdUsuario(rs.getInt("id_usuario"));
+                movimiento.setFechaMovimiento(
+                        rs.getTimestamp("fecha_movimiento")
+                                .toLocalDateTime());
+                movimiento.setMovimiento(rs.getString("movimiento"));
+                movimiento.setMotivoMovimiento(
+                        rs.getString("motivo_movimiento"));
+                movimiento.setCantidad(rs.getInt("cantidad"));
+                movimiento.setStockAntes(rs.getInt("stock_antes"));
+                movimiento.setStockDespues(rs.getInt("stock_despues"));
+                movimiento.setStockDefectuosoAntes(
+                        rs.getInt("stock_defectuoso_antes"));
+                movimiento.setStockDefectuosoDespues(
+                        rs.getInt("stock_defectuoso_despues"));
+                movimiento.setPrecioUnitario(
+                        rs.getBigDecimal("precio_unitario"));
+                movimiento.setTipoReferencia(
+                        rs.getString("tipo_referencia"));
+                int idReferencia = rs.getInt("id_referencia");
+                if (!rs.wasNull()) {
+                    movimiento.setIdReferencia(idReferencia);
+                }
+                movimiento.setNroComprobante(
+                        rs.getString("nro_comprobante"));
+                movimiento.setMotivo(rs.getString("motivo"));
+                return movimiento;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Error al buscar el Kardex de recepción.", e);
+        }
+    }
+
+    public boolean insertarEntradaRecepcion(
+            Connection con,
+            Kardex movimiento) {
+
+        String sql = """
+            INSERT INTO Kardex (
+                id_producto, id_inventario, id_detalle_recepcion,
+                id_usuario, fecha_movimiento, movimiento,
+                motivo_movimiento, cantidad, stock_antes,
+                stock_despues, stock_defectuoso_antes,
+                stock_defectuoso_despues, precio_unitario,
+                tipo_referencia, id_referencia, nro_comprobante, motivo
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, movimiento.getIdProducto());
+            ps.setInt(2, movimiento.getIdInventario());
+            if (movimiento.getIdDetalleRecepcion() == null) {
+                ps.setNull(3, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(3, movimiento.getIdDetalleRecepcion());
+            }
+            ps.setInt(4, movimiento.getIdUsuario());
+            ps.setTimestamp(5, Timestamp.valueOf(
+                    movimiento.getFechaMovimiento()));
+            ps.setString(6, movimiento.getMovimiento());
+            ps.setString(7, movimiento.getMotivoMovimiento());
+            ps.setInt(8, movimiento.getCantidad());
+            ps.setInt(9, movimiento.getStockAntes());
+            ps.setInt(10, movimiento.getStockDespues());
+            ps.setInt(11, movimiento.getStockDefectuosoAntes());
+            ps.setInt(12, movimiento.getStockDefectuosoDespues());
+            ps.setBigDecimal(13, movimiento.getPrecioUnitario());
+            ps.setString(14, movimiento.getTipoReferencia());
+            if (movimiento.getIdReferencia() == null) {
+                ps.setNull(15, java.sql.Types.INTEGER);
+            } else {
+                ps.setInt(15, movimiento.getIdReferencia());
+            }
+            ps.setString(16, movimiento.getNroComprobante());
+            ps.setString(17, movimiento.getMotivo());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Error al registrar la entrada de recepción en Kardex.", e);
+        }
+    }
+
+    public boolean actualizarEntradaRecepcion(
+            Connection con,
+            Kardex movimiento) {
+
+        String sql = """
+            UPDATE Kardex
+            SET cantidad = ?, stock_despues = ?
+            WHERE id_kardex = ?
+              AND id_detalle_recepcion = ?
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, movimiento.getCantidad());
+            ps.setInt(2, movimiento.getStockDespues());
+            ps.setInt(3, movimiento.getIdKardex());
+            ps.setInt(4, movimiento.getIdDetalleRecepcion());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Error al actualizar la entrada de recepción en Kardex.", e);
+        }
+    }
 }

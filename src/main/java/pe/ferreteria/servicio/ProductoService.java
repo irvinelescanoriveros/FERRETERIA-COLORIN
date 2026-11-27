@@ -51,6 +51,10 @@ public class ProductoService {
         return productoDAO.existeCodigo(codigo, idProducto);
     }
 
+    public Producto buscarPorCodigo(String codigo) {
+        return productoDAO.buscarPorCodigo(codigo);
+    }
+
     public Producto buscarParaDashboard(int idProducto) {
 
         if (idProducto <= 0) {

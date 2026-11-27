@@ -39,6 +39,10 @@ public class ProductoController {
     public boolean existeCodigo(String codigo, int idProducto) {
         return productoService.existeCodigo(codigo, idProducto);
     }
+
+    public Producto buscarPorCodigo(String codigo) {
+        return productoService.buscarPorCodigo(codigo);
+    }
     public Producto buscarParaDashboard(int idProducto) {
 
     return productoService.buscarParaDashboard(

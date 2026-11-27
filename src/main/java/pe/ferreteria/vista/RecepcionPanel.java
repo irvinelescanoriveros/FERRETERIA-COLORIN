@@ -5,6 +5,8 @@ package pe.ferreteria.vista;
  * delega la lógica en los controladores.
  */
 public class RecepcionPanel extends javax.swing.JPanel {
+private javax.swing.Timer temporizadorEscaner;
+private boolean procesandoEscaner;
 private final pe.ferreteria.controlador.RecepcionController recepcionController =
         new pe.ferreteria.controlador.RecepcionController();
 
@@ -12,6 +14,10 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
         new pe.ferreteria.controlador.ProveedorController();
     public RecepcionPanel() {
         initComponents();
+        pe.ferreteria.modelo.Usuario usuario =
+                pe.ferreteria.infraestructura.SesionUsuario.getUsuarioActual();
+        configurarAccesoAdministrador(usuario == null ? null : usuario.getRol());
+        configurarEscanerAutomatico();
         inicializarRecepcion();
     }
 
@@ -24,7 +30,135 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
     txtFechaDelComprobante.setText("");
 
     limpiarProductoSeleccionado();
+    txtEscaner.requestFocusInWindow();
 }
+
+    private void configurarEscanerAutomatico() {
+        temporizadorEscaner = new javax.swing.Timer(450, evt -> procesarEscaneoAutomatico());
+        temporizadorEscaner.setRepeats(false);
+        txtEscaner.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void cambio() {
+                if (txtEscaner.getText().trim().length() >= 3) temporizadorEscaner.restart();
+                else temporizadorEscaner.stop();
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
+        });
+    }
+
+    private void procesarEscaneoAutomatico() {
+        String codigo = txtEscaner.getText().trim();
+        if (codigo.length() >= 3
+                && new pe.ferreteria.controlador.ProductoController().buscarPorCodigo(codigo) != null) {
+            procesarCodigoEscaneadoSeguro();
+        }
+    }
+
+    private void procesarCodigoEscaneadoSeguro() {
+        if (procesandoEscaner || txtEscaner.getText().trim().isEmpty()) return;
+        procesandoEscaner = true;
+        try {
+            procesarCodigoEscaneadoAhora();
+        } finally {
+            procesandoEscaner = false;
+        }
+    }
+
+    private void procesarCodigoEscaneadoAhora() {
+        String codigo = txtEscaner.getText().trim();
+        if (codigo.isEmpty()) return;
+        pe.ferreteria.modelo.Compra compra = obtenerCompraSeleccionada();
+        if (compra == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Selecciona primero el comprobante de compra.");
+            txtEscaner.selectAll();
+            return;
+        }
+        pe.ferreteria.modelo.Producto producto =
+                new pe.ferreteria.controlador.ProductoController().buscarPorCodigo(codigo);
+        if (producto == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "No se encontró un producto activo con ese código.");
+            txtEscaner.selectAll();
+            return;
+        }
+        pe.ferreteria.modelo.DetalleCompra detalle = null;
+        for (pe.ferreteria.modelo.DetalleCompra linea :
+                recepcionController.listarDetallesCompra(compra.getIdCompra())) {
+            if (linea.getIdProducto() == producto.getIdProducto()) { detalle = linea; break; }
+        }
+        if (detalle == null) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "El producto no forma parte del comprobante seleccionado.");
+            txtEscaner.selectAll();
+            return;
+        }
+        int idUsuario = pe.ferreteria.infraestructura.SesionUsuario.getIdUsuario();
+        if (idUsuario <= 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, "No hay un usuario con sesión iniciada.");
+            return;
+        }
+        int idRecepcion = obtenerOCrearRecepcion(idUsuario);
+        if (idRecepcion <= 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, "No se pudo obtener la recepción.");
+            return;
+        }
+        pe.ferreteria.modelo.DetalleRecepcion detalleActual =
+                recepcionController.buscarDetalleRecepcion(
+                        idRecepcion, detalle.getIdDetalle());
+        if (detalleActual != null) {
+            int recibidas = detalleActual.getCantidadRecibida() == null
+                    ? 0 : detalleActual.getCantidadRecibida();
+            int maximo = detalle.getCantidad() - detalleActual.getCantidadDefectuosa();
+            if ("Completada".equalsIgnoreCase(detalleActual.getEstado())
+                    || recibidas >= maximo) {
+                javax.swing.JOptionPane.showMessageDialog(this,
+                        "Ya se recibieron todas las unidades permitidas de este lote.",
+                        "Recepción completa", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                txtEscaner.setText("");
+                txtEscaner.requestFocusInWindow();
+                return;
+            }
+        }
+        int cantidad = recepcionController.procesarEscaneo(
+                compra, detalle, producto, idRecepcion, idUsuario);
+        if (cantidad <= 0) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "No se registró el escaneo. Revisa el estado y la cantidad recibida.");
+            txtEscaner.selectAll();
+            return;
+        }
+        pe.ferreteria.modelo.DetalleRecepcion detalleActualizado =
+                recepcionController.buscarDetalleRecepcion(
+                        idRecepcion, detalle.getIdDetalle());
+        int cantidadDefectuosa = detalleActualizado == null
+                ? 0 : detalleActualizado.getCantidadDefectuosa();
+        int cantidadMaxima = detalle.getCantidad() - cantidadDefectuosa;
+
+        lblProductoEscaneado.setText(
+                "Producto seleccionado: " + detalle.getLote() + " - " + producto.getNombre());
+        lblPresentacionEscaneada.setText(
+                "Presentación: " + producto.getUnidad());
+        lblCantidadRegistrada.setText(
+                "Cantidad registrada total: " + cantidad + " / " + cantidadMaxima
+                + (cantidadDefectuosa > 0
+                        ? " (" + cantidadDefectuosa + " observadas)" : ""));
+
+        txtProductoSeleccionado.setText(detalle.getLote() + " - " + producto.getNombre());
+        txtCantidaddelProducto.setText(String.valueOf(cantidad));
+        txtObservacion.setText("");
+        txtCantidadObservada.setText("");
+        txtBuscarProducto.setText("");
+        comboEstado.setSelectedItem("Todos");
+        cargarTablaRecepcion();
+        for (int fila = 0; fila < tableRecepcionDelComprobante.getRowCount(); fila++) {
+            if (tableRecepcionDelComprobante.getValueAt(fila, 0).toString().equals(detalle.getLote())) {
+                tableRecepcionDelComprobante.setRowSelectionInterval(fila, fila);
+                break;
+            }
+        }
+        txtEscaner.setText("");
+        txtEscaner.requestFocusInWindow();
+    }
     private void cargarComprasPendientes() {
 
         pe.ferreteria.controlador.RecepcionController controller =
@@ -98,7 +232,9 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
                 "Producto",
                 "Categoría",
                 "Marca",
-                "Cant.",
+                "Recibida",
+                "Comprada",
+                "Observada",
                 "F.Venc.",
                 "Estante",
                 "Nivel",
@@ -227,7 +363,8 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 
         String estado = "Pendiente";
 
-        int cantidadMostrar = detalle.getCantidad();
+        int cantidadRecibidaMostrar = 0;
+        int cantidadObservadaMostrar = 0;
 
         for (pe.ferreteria.modelo.DetalleRecepcion detalleRecepcion
                 : detallesRecepcion) {
@@ -240,9 +377,10 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
                 }
 
                 if (detalleRecepcion.getCantidadRecibida() != null) {
-                    cantidadMostrar =
+                    cantidadRecibidaMostrar =
                             detalleRecepcion.getCantidadRecibida();
                 }
+                cantidadObservadaMostrar = detalleRecepcion.getCantidadDefectuosa();
 
                 break;
             }
@@ -253,7 +391,9 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
             productoEncontrado.getNombre(),
             nombreCategoria,
             nombreMarca,
-            cantidadMostrar,
+            cantidadRecibidaMostrar,
+            detalle.getCantidad(),
+            cantidadObservadaMostrar,
             fechaVencimiento,
             productoEncontrado.getEstante(),
             productoEncontrado.getNivel(),
@@ -281,7 +421,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 
     String cantidad =
             tableRecepcionDelComprobante
-                    .getValueAt(fila, 4)
+                    .getValueAt(fila, 5)
                     .toString();
 
     txtProductoSeleccionado.setText(
@@ -329,10 +469,10 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
             );
         }
 
-        if (detalleRecepcion.getCantidadRecibida() != null) {
+        if (detalleRecepcion.getCantidadDefectuosa() > 0) {
             txtCantidadObservada.setText(
                     String.valueOf(
-                            detalleRecepcion.getCantidadRecibida()
+                            detalleRecepcion.getCantidadDefectuosa()
                     )
             );
         }
@@ -432,7 +572,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
     if (texto.isEmpty()) {
         javax.swing.JOptionPane.showMessageDialog(
                 this,
-                "Ingrese la cantidad recibida."
+                "Ingrese la cantidad observada."
         );
         txtCantidadObservada.requestFocus();
         return null;
@@ -463,7 +603,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
     if (cantidadObservada <= 0) {
         javax.swing.JOptionPane.showMessageDialog(
                 this,
-                "La cantidad recibida debe ser mayor que cero."
+                "La cantidad observada debe ser mayor que cero."
         );
         txtCantidadObservada.requestFocus();
         return null;
@@ -477,6 +617,9 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
     txtCantidaddelProducto.setText("");
     txtObservacion.setText("");
     txtCantidadObservada.setText("");
+    lblProductoEscaneado.setText("--");
+    lblPresentacionEscaneada.setText("--");
+    lblCantidadRegistrada.setText("-");
 
     tableRecepcionDelComprobante.clearSelection();
 }
@@ -553,7 +696,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
                 modelo.getValueAt(fila, 3).toString().toLowerCase();
 
         String estado =
-                modelo.getValueAt(fila, 8).toString();
+                modelo.getValueAt(fila, 10).toString();
 
         boolean coincideTexto =
                 textoBusqueda.isEmpty()
@@ -564,6 +707,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 
         boolean coincideEstado =
                 estadoSeleccionado.isEmpty()
+                || "Todos".equalsIgnoreCase(estadoSeleccionado)
                 || estado.equalsIgnoreCase(estadoSeleccionado);
 
         if (!coincideTexto || !coincideEstado) {
@@ -601,7 +745,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 
     String estadoActual =
             tableRecepcionDelComprobante
-                    .getValueAt(fila, 8)
+                    .getValueAt(fila, 10)
                     .toString();
 
     if ("Completada".equalsIgnoreCase(estadoActual)) {
@@ -700,73 +844,22 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
         return false;
     }
 
-    Integer cantidadRecibida =
+    Integer cantidadDefectuosa =
             obtenerCantidadObservadaValidada();
 
-    if (cantidadRecibida == null) {
+    if (cantidadDefectuosa == null) {
         return false;
     }
 
-    pe.ferreteria.modelo.DetalleRecepcion detalleRecepcion =
-            recepcionController.buscarDetalleRecepcion(
-                    idRecepcion,
-                    detalleCompra.getIdDetalle()
-            );
+    String resultado = recepcionController.observarRecepcion(
+            idRecepcion, detalleCompra.getIdDetalle(), cantidadDefectuosa,
+            txtObservacion.getText().trim());
 
-    if (detalleRecepcion == null) {
-
-        detalleRecepcion =
-                new pe.ferreteria.modelo.DetalleRecepcion();
-
-        detalleRecepcion.setIdRecepcion(idRecepcion);
-
-        detalleRecepcion.setIdDetalleCompra(
-                detalleCompra.getIdDetalle()
-        );
-    }
-
-    detalleRecepcion.setEstado("Observada");
-
-    detalleRecepcion.setFechaConfirmacion(
-            java.time.LocalDateTime.now()
-    );
-
-    detalleRecepcion.setCantidadRecibida(
-            cantidadRecibida
-    );
-
-    detalleRecepcion.setObservacion(
-            txtObservacion.getText().trim()
-    );
-
-    boolean resultado;
-
-    if (detalleRecepcion.getIdDetalleRecepcion() == 0) {
-
-        resultado =
-                recepcionController.registrarDetalle(
-                        detalleRecepcion
-                );
-
-    } else {
-
-        resultado =
-                recepcionController.actualizarDetalle(
-                        detalleRecepcion
-                );
-    }
-
-    if (!resultado) {
-
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "No se pudo registrar la observación."
-        );
-
+    if (!"OK".equals(resultado)) {
+        javax.swing.JOptionPane.showMessageDialog(this, resultado);
+        txtCantidadObservada.requestFocusInWindow();
         return false;
     }
-
-    actualizarEstadoRecepcionActual();
 
     javax.swing.JOptionPane.showMessageDialog(
             this,
@@ -787,7 +880,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 
     String estado =
             tableRecepcionDelComprobante
-                    .getValueAt(fila, 8)
+                    .getValueAt(fila, 10)
                     .toString();
 
     if ("Completada".equalsIgnoreCase(estado)) {
@@ -798,54 +891,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
         return false;
     }
 
-    if ("Observada".equalsIgnoreCase(estado)) {
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "Este producto tiene una recepción observada. Debe corregirla antes de completarla."
-        );
-        return false;
-    }
-
-    String observacion =
-            txtObservacion.getText().trim();
-
-    if (!observacion.isEmpty()) {
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "Existe una observación. Debe observar la recepción antes de completar."
-        );
-        return false;
-    }
-
-    pe.ferreteria.modelo.DetalleCompra detalle =
-            obtenerDetalleSeleccionado();
-
-    if (detalle == null) {
-        return false;
-    }
-
-    String textoCantidad =
-            txtCantidadObservada.getText().trim();
-
-    if (!textoCantidad.isEmpty()) {
-
-        Integer cantidadIngresada =
-                obtenerCantidadObservadaValidada();
-
-        if (cantidadIngresada == null) {
-            return false;
-        }
-
-        if (cantidadIngresada != detalle.getCantidad()) {
-            javax.swing.JOptionPane.showMessageDialog(
-                    this,
-                    "La cantidad recibida no coincide con la cantidad comprada. Debe observar la recepción."
-            );
-            return false;
-        }
-    }
-
-    return true;
+    return obtenerDetalleSeleccionado() != null;
 }
  private boolean completarProducto() {
 
@@ -879,63 +925,67 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
         return false;
     }
 
-    int idRecepcion =
-            obtenerOCrearRecepcion(
-                    idUsuario
-            );
+    pe.ferreteria.modelo.Recepcion recepcionActual = obtenerRecepcionActual();
+    pe.ferreteria.modelo.DetalleRecepcion detalleActual = recepcionActual == null
+            ? null : recepcionController.buscarDetalleRecepcion(
+                    recepcionActual.getIdRecepcion(), detalleCompra.getIdDetalle());
+    int recibidas = detalleActual == null || detalleActual.getCantidadRecibida() == null
+            ? 0 : detalleActual.getCantidadRecibida();
+    int observadas = detalleActual == null ? 0 : detalleActual.getCantidadDefectuosa();
+    int tope = detalleCompra.getCantidad() - observadas;
+    int faltante = tope - recibidas;
 
-    if (idRecepcion == 0) {
-
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "No se pudo obtener la recepción."
-        );
-
+    if (faltante <= 0) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+                "Ya se recibieron todas las unidades en buen estado.\n"
+                + "Si hay unidades observadas, deben resolverse con «Corregir recepción»." );
         return false;
     }
 
-    pe.ferreteria.modelo.DetalleRecepcion detalleRecepcion =
-            recepcionController.buscarDetalleRecepcion(
-                    idRecepcion,
-                    detalleCompra.getIdDetalle()
-            );
-
-    if (detalleRecepcion == null) {
-
-        detalleRecepcion =
-                new pe.ferreteria.modelo.DetalleRecepcion();
-
-        detalleRecepcion.setIdRecepcion(
-                idRecepcion
-        );
-
-        detalleRecepcion.setIdDetalleCompra(
-                detalleCompra.getIdDetalle()
-        );
+    int cantidadAIngresar = faltante;
+    if (recibidas > 0) {
+        Object respuesta = javax.swing.JOptionPane.showInputDialog(
+                this,
+                "Recibidas: " + recibidas + " de " + tope + "\n"
+                + "Faltan: " + faltante + "\n\n"
+                + "Cantidad a ingresar (1 a " + faltante + "):",
+                "Completar recepción", javax.swing.JOptionPane.QUESTION_MESSAGE,
+                null, null, String.valueOf(faltante));
+        if (respuesta == null) return false;
+        String texto = respuesta.toString().trim();
+        if (!texto.matches("\\d+")) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Cantidad inválida. Ingrese solo números.");
+            return false;
+        }
+        try {
+            cantidadAIngresar = Integer.parseInt(texto);
+        } catch (NumberFormatException e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Cantidad inválida.");
+            return false;
+        }
+        if (cantidadAIngresar < 1 || cantidadAIngresar > faltante) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "La cantidad debe estar entre 1 y " + faltante + ".");
+            return false;
+        }
     }
 
-    /*
-     * La cantidad recibida al completar debe ser
-     * igual a la cantidad comprada.
-     */
-    int cantidadRecibida =
-            detalleCompra.getCantidad();
+    int idRecepcion = obtenerOCrearRecepcion(idUsuario);
+    if (idRecepcion == 0) {
+        javax.swing.JOptionPane.showMessageDialog(this, "No se pudo obtener la recepción.");
+        return false;
+    }
 
-    detalleRecepcion.setEstado(
-            "Completada"
-    );
-
-    detalleRecepcion.setFechaConfirmacion(
-            java.time.LocalDateTime.now()
-    );
-
-    detalleRecepcion.setCantidadRecibida(
-            cantidadRecibida
-    );
-
-    detalleRecepcion.setObservacion(
-            null
-    );
+    pe.ferreteria.modelo.DetalleRecepcion detalleRecepcion = detalleActual;
+    if (detalleRecepcion == null) {
+        detalleRecepcion = new pe.ferreteria.modelo.DetalleRecepcion();
+        detalleRecepcion.setIdRecepcion(idRecepcion);
+        detalleRecepcion.setIdDetalleCompra(detalleCompra.getIdDetalle());
+        detalleRecepcion.setCantidadRecibida(0);
+        detalleRecepcion.setEstado("Pendiente");
+    }
+    int cantidadObjetivo = recibidas + cantidadAIngresar;
 
     /*
      * Buscar el producto maestro.
@@ -980,7 +1030,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
                             detalleRecepcion,
                             idRecepcion,
                             idUsuario,
-                            cantidadRecibida
+                            cantidadObjetivo
                     );
 
     if (idInventario == 0) {
@@ -993,13 +1043,14 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
         return false;
     }
 
-    javax.swing.JOptionPane.showMessageDialog(
-            this,
-            "Producto recibido correctamente,\n"
-            + "registrado en Inventario y en Kardex."
-    );
+    int nuevoFaltante = faltante - cantidadAIngresar;
+    String mensaje = "Se ingresaron " + cantidadAIngresar
+            + " unidades al Inventario y al Kardex.";
+    if (nuevoFaltante > 0) mensaje += "\nFaltan " + nuevoFaltante + " unidades por recibir.";
+    javax.swing.JOptionPane.showMessageDialog(this, mensaje);
 
     actualizarInterfazDespuesDeCompletar();
+    cargarTablaRecepcion();
 
     return true;
 }
@@ -1018,6 +1069,15 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 }
    private boolean validarCorreccionRecepcion() {
 
+    pe.ferreteria.modelo.Usuario usuario =
+            pe.ferreteria.infraestructura.SesionUsuario.getUsuarioActual();
+    if (usuario == null || usuario.getRol() == null
+            || !usuario.getRol().equalsIgnoreCase("Administrador")) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+                "Solo un administrador puede corregir recepciones.");
+        return false;
+    }
+
     if (!validarSeleccionRecepcion()) {
         return false;
     }
@@ -1026,7 +1086,7 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
 
     String estado =
             tableRecepcionDelComprobante
-                    .getValueAt(fila, 8)
+                    .getValueAt(fila, 10)
                     .toString();
 
     if (!"Observada".equalsIgnoreCase(estado)) {
@@ -1094,6 +1154,21 @@ private final pe.ferreteria.controlador.ProveedorController proveedorController 
         return false;
     }
 
+    if (detalleRecepcion.getCantidadDefectuosa() <= 0) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+                "El detalle no tiene unidades observadas para corregir.");
+        return false;
+    }
+
+    int faltanBuenas = detalle.getCantidad()
+            - detalleRecepcion.getCantidadDefectuosa()
+            - detalleRecepcion.getCantidadRecibida();
+    if (faltanBuenas > 0) {
+        javax.swing.JOptionPane.showMessageDialog(this,
+                "Aún faltan " + faltanBuenas + " unidades buenas por recibir.");
+        return false;
+    }
+
     return true;
 }
 
@@ -1117,6 +1192,8 @@ private boolean corregirProducto() {
     pe.ferreteria.modelo.DetalleCompra detalleCompra =
             obtenerDetalleSeleccionado();
 
+    pe.ferreteria.modelo.Compra compra = obtenerCompraSeleccionada();
+
     pe.ferreteria.modelo.Recepcion recepcion =
             obtenerRecepcionActual();
 
@@ -1127,85 +1204,78 @@ private boolean corregirProducto() {
             );
 
     if (detalleRecepcion == null) {
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "No se encontró el detalle de recepción."
-        );
+        javax.swing.JOptionPane.showMessageDialog(this, "No se encontró el detalle de recepción.");
         return false;
     }
 
-    Integer cantidadObservada =
-            detalleRecepcion.getCantidadRecibida();
-
-    if (cantidadObservada == null) {
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "No existe una cantidad observada para corregir."
-        );
+    pe.ferreteria.modelo.Producto producto = null;
+    for (pe.ferreteria.modelo.Producto candidato :
+            new pe.ferreteria.controlador.ProductoController().listar()) {
+        if (candidato.getIdProducto() == detalleCompra.getIdProducto()) {
+            producto = candidato;
+            break;
+        }
+    }
+    if (producto == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "No se encontró el producto.");
         return false;
     }
 
-    int respuesta = javax.swing.JOptionPane.showConfirmDialog(
-            this,
-            "¿Desea corregir la cantidad de recepción?\n"
-            + "La cantidad observada ("
-            + cantidadObservada
-            + ") será tomada como la cantidad recibida.",
-            "Confirmar corrección",
-            javax.swing.JOptionPane.YES_NO_OPTION,
-            javax.swing.JOptionPane.QUESTION_MESSAGE
-    );
+    javax.swing.JTextArea comentarioTecnico = new javax.swing.JTextArea(
+            detalleRecepcion.getObservacion() == null ? "" : detalleRecepcion.getObservacion(), 3, 40);
+    comentarioTecnico.setEditable(false);
+    comentarioTecnico.setLineWrap(true);
+    comentarioTecnico.setWrapStyleWord(true);
+    javax.swing.JTextArea comentarioAdministrador = new javax.swing.JTextArea(3, 40);
+    comentarioAdministrador.setLineWrap(true);
+    comentarioAdministrador.setWrapStyleWord(true);
+    javax.swing.JPanel panel = new javax.swing.JPanel();
+    panel.setLayout(new javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS));
+    panel.add(new javax.swing.JLabel("Producto: " + producto.getNombre()
+            + " (Lote " + detalleCompra.getLote() + ")"));
+    panel.add(new javax.swing.JLabel("Unidades observadas: "
+            + detalleRecepcion.getCantidadDefectuosa()));
+    panel.add(javax.swing.Box.createVerticalStrut(8));
+    panel.add(new javax.swing.JLabel("Observación del almacenero:"));
+    panel.add(new javax.swing.JScrollPane(comentarioTecnico));
+    panel.add(javax.swing.Box.createVerticalStrut(8));
+    panel.add(new javax.swing.JLabel("Comentario del administrador (obligatorio, máximo 255 caracteres):"));
+    panel.add(new javax.swing.JScrollPane(comentarioAdministrador));
 
-    if (respuesta != javax.swing.JOptionPane.YES_OPTION) {
-        return false;
+    String[] opciones = {"Ingresar como stock bueno", "Ingresar como stock defectuoso", "Cancelar"};
+    boolean ingresarComoBueno;
+    String comentario;
+    while (true) {
+        int opcion = javax.swing.JOptionPane.showOptionDialog(this, panel,
+                "Corregir recepción", javax.swing.JOptionPane.DEFAULT_OPTION,
+                javax.swing.JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[2]);
+        if (opcion != 0 && opcion != 1) return false;
+        comentario = comentarioAdministrador.getText().trim();
+        if (comentario.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Escriba el comentario de la decisión.");
+            continue;
+        }
+        if (comentario.length() > 255) {
+            javax.swing.JOptionPane.showMessageDialog(this, "El comentario no puede superar 255 caracteres.");
+            continue;
+        }
+        ingresarComoBueno = opcion == 0;
+        break;
     }
 
-    /*
-     * La corrección NO completa la recepción.
-     * La deja nuevamente en estado Pendiente.
-     */
-    detalleRecepcion.setEstado("Pendiente");
-
-    detalleRecepcion.setFechaConfirmacion(
-            null
-    );
-
-    /*
-     * Se conserva la cantidad observada.
-     * Ejemplo: 20 compradas → 18 recibidas → 18 queda.
-     */
-    detalleRecepcion.setCantidadRecibida(
-            cantidadObservada
-    );
-
-    detalleRecepcion.setObservacion(null);
-
-    if (!recepcionController.actualizarDetalle(
-            detalleRecepcion)) {
-
-        javax.swing.JOptionPane.showMessageDialog(
-                this,
-                "No se pudo corregir la recepción."
-        );
-
+    String resultado = recepcionController.corregirRecepcion(
+            recepcion.getIdRecepcion(), compra, detalleCompra, producto,
+            idUsuario, ingresarComoBueno, comentario);
+    if (!"OK".equals(resultado)) {
+        javax.swing.JOptionPane.showMessageDialog(this, resultado);
         return false;
     }
-
-    recepcionController.actualizarEstadoSegunDetalles(
-            recepcion.getIdRecepcion()
-    );
-
-    javax.swing.JOptionPane.showMessageDialog(
-            this,
-            "Recepción corregida correctamente.\n"
-            + "Cantidad recibida: "
-            + cantidadObservada
-            + "\n\nLa recepción quedó pendiente de confirmación."
-    );
-
+    javax.swing.JOptionPane.showMessageDialog(this,
+            "Recepción corregida. Las unidades observadas se registraron como "
+            + (ingresarComoBueno ? "stock bueno." : "stock defectuoso."));
+    actualizarInterfazDespuesDeCompletar();
     cargarTablaRecepcion();
     limpiarProductoSeleccionado();
-
     return true;
 }
 
@@ -1273,6 +1343,11 @@ private boolean corregirProducto() {
         jLabel6 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         comboEstado = new javax.swing.JComboBox<>();
+        jLabel12 = new javax.swing.JLabel();
+        txtEscaner = new javax.swing.JTextField();
+        lblProductoEscaneado = new javax.swing.JLabel();
+        lblPresentacionEscaneada = new javax.swing.JLabel();
+        lblCantidadRegistrada = new javax.swing.JLabel();
         jPanel9 = new javax.swing.JPanel();
         txtCantidaddelProducto = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
@@ -1290,13 +1365,13 @@ private boolean corregirProducto() {
 
         tableRecepcionDelComprobante.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Lote", "Producto", "Categoria", "Marca", "Cant.", "F. Venc.", "Estante", "Nivel", "Estado"
+                "Lote", "Producto", "Categoria", "Marca", "Recibida", "Comprada", "Observada", "F. Venc.", "Estante", "Nivel", "Estado"
             }
         ));
         tableRecepcionDelComprobante.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1391,12 +1466,27 @@ private boolean corregirProducto() {
 
         jLabel5.setText("Estado");
 
-        comboEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pendiente", "Observada", "Completada" }));
+        comboEstado.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Todos", "Pendiente", "Observada", "Completada" }));
         comboEstado.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 comboEstadoActionPerformed(evt);
             }
         });
+
+        jLabel12.setText("Escanear código");
+
+        txtEscaner.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtEscanerActionPerformed(evt);
+            }
+        });
+
+        lblProductoEscaneado.setText("--");
+
+        lblPresentacionEscaneada.setText("--");
+
+        lblCantidadRegistrada.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        lblCantidadRegistrada.setText("-");
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -1411,7 +1501,18 @@ private boolean corregirProducto() {
                 .addComponent(jLabel5)
                 .addGap(32, 32, 32)
                 .addComponent(comboEstado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(112, Short.MAX_VALUE))
+                .addGap(20, 20, 20)
+                .addComponent(jLabel12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtEscaner, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(35, 35, 35)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblProductoEscaneado, javax.swing.GroupLayout.PREFERRED_SIZE, 674, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addComponent(lblPresentacionEscaneada, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(38, 38, 38)
+                        .addComponent(lblCantidadRegistrada, javax.swing.GroupLayout.PREFERRED_SIZE, 425, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(77, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1421,8 +1522,17 @@ private boolean corregirProducto() {
                     .addComponent(jLabel5)
                     .addComponent(jLabel6)
                     .addComponent(txtBuscarProducto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(comboEstado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboEstado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel12)
+                    .addComponent(txtEscaner, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(lblProductoEscaneado, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblPresentacionEscaneada, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblCantidadRegistrada, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
 
         jPanel9.setBackground(new java.awt.Color(255, 250, 242));
@@ -1519,14 +1629,16 @@ private boolean corregirProducto() {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 920, Short.MAX_VALUE))
                     .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel9, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane4))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 9, Short.MAX_VALUE)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 1471, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1535,7 +1647,7 @@ private boolean corregirProducto() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -1570,6 +1682,11 @@ actualizarComprobanteSeleccionado();        // TODO add your handling code here:
 filtrarTablaRecepcion();        // TODO add your handling code here:
     }//GEN-LAST:event_txtBuscarProductoKeyReleased
 
+    private void txtEscanerActionPerformed(java.awt.event.ActionEvent evt) {
+        if (temporizadorEscaner != null) temporizadorEscaner.stop();
+        procesarCodigoEscaneadoSeguro();
+    }
+
     private void tableRecepcionDelComprobanteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableRecepcionDelComprobanteMouseClicked
 cargarProductoSeleccionado();        // TODO add your handling code here:
     }//GEN-LAST:event_tableRecepcionDelComprobanteMouseClicked
@@ -1584,6 +1701,7 @@ cargarProductoSeleccionado();        // TODO add your handling code here:
     private javax.swing.JComboBox<String> comboEstado;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel21;
     private javax.swing.JLabel jLabel5;
@@ -1595,10 +1713,14 @@ cargarProductoSeleccionado();        // TODO add your handling code here:
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JLabel lblCantidadRegistrada;
+    private javax.swing.JLabel lblPresentacionEscaneada;
+    private javax.swing.JLabel lblProductoEscaneado;
     private javax.swing.JTable tableRecepcionDelComprobante;
     private javax.swing.JTextField txtBuscarProducto;
     private javax.swing.JTextField txtCantidadObservada;
     private javax.swing.JTextField txtCantidaddelProducto;
+    private javax.swing.JTextField txtEscaner;
     private javax.swing.JLabel txtFechaDelComprobante;
     private javax.swing.JLabel txtNombreProveedor;
     private javax.swing.JTextField txtObservacion;
