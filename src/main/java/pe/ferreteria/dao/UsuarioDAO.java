@@ -305,4 +305,60 @@ public class UsuarioDAO {
 
         return null;
     }
+   
+public String obtenerPassword(int idUsuario) {
+
+    String sql = "SELECT password FROM Usuario WHERE id_usuario = ?";
+
+    try (Connection cn = ConexionBD.conectar();
+         PreparedStatement ps = cn.prepareStatement(sql)) {
+
+        ps.setInt(1, idUsuario);
+
+        try (ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getString("password");
+            }
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Error al obtener contraseña: " + e.getMessage());
+    }
+
+    return null;
+}
+
+/*
+ * Actualiza solo los datos personales de la propia cuenta.
+ * No toca usuario, rol ni estado. Si passwordHash es null,
+ * la contraseña se mantiene igual.
+ */
+public boolean actualizarPerfil(int idUsuario, String nombre,
+        String apellidos, String correo, String passwordHash) {
+
+    String sql = """
+            UPDATE Usuario
+            SET nombre = ?, apellidos = ?, correo = ?,
+                password = COALESCE(?, password)
+            WHERE id_usuario = ?
+            """;
+
+    try (Connection cn = ConexionBD.conectar();
+         PreparedStatement ps = cn.prepareStatement(sql)) {
+
+        ps.setString(1, nombre);
+        ps.setString(2, apellidos);
+        ps.setString(3, correo);
+        ps.setString(4, passwordHash);
+        ps.setInt(5, idUsuario);
+
+        return ps.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        System.out.println("Error al actualizar perfil: " + e.getMessage());
+        return false;
+    }
+}
+ 
 }

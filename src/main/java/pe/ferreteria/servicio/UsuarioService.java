@@ -129,4 +129,83 @@ public class UsuarioService {
 
         return usuario;
     }
+    /*
+ * Actualiza la propia cuenta del usuario con sesion iniciada.
+ * Devuelve null si todo salio bien, o el mensaje del problema.
+ * nuevaPassword vacia o null = la contraseña no cambia.
+ */
+public String actualizarMiCuenta(String nombre, String apellidos,
+        String correo, String passwordActual, String nuevaPassword) {
+
+    int idUsuario = SesionUsuario.getIdUsuario();
+
+    if (idUsuario <= 0) {
+        return "No hay una sesión iniciada.";
+    }
+
+    if (nombre == null || nombre.isBlank()
+            || apellidos == null || apellidos.isBlank()) {
+        return "Ingrese nombre y apellidos.";
+    }
+
+    String correoLimpio = correo == null ? "" : correo.trim();
+
+    if (!correoLimpio.isEmpty() && !correoLimpio.contains("@")) {
+        return "El correo no es válido.";
+    }
+
+    if (passwordActual == null || passwordActual.isEmpty()) {
+        return "Ingrese su contraseña actual.";
+    }
+
+    String guardada = usuarioDAO.obtenerPassword(idUsuario);
+
+    if (guardada == null || !Seguridad.verificar(passwordActual, guardada)) {
+        LOG.warning("Cambio de cuenta rechazado: contrasena actual incorrecta usuario_id="
+                + idUsuario);
+        return "La contraseña actual es incorrecta.";
+    }
+
+    String nuevoHash = null;
+    boolean cambiaPassword = nuevaPassword != null && !nuevaPassword.isEmpty();
+
+    if (cambiaPassword) {
+
+        if (nuevaPassword.length() < 6) {
+            return "La nueva contraseña debe tener al menos 6 caracteres.";
+        }
+
+        if (nuevaPassword.equals(passwordActual)) {
+            return "La nueva contraseña debe ser distinta de la actual.";
+        }
+
+        nuevoHash = Seguridad.hashear(nuevaPassword);
+    }
+
+    boolean guardado = usuarioDAO.actualizarPerfil(
+            idUsuario,
+            nombre.trim(),
+            apellidos.trim(),
+            correoLimpio,
+            nuevoHash
+    );
+
+    if (!guardado) {
+        return "No se pudieron guardar los cambios.";
+    }
+
+    // Se refresca el usuario de la sesion para el encabezado
+    Usuario actual = SesionUsuario.getUsuarioActual();
+
+    if (actual != null) {
+        actual.setNombre(nombre.trim());
+        actual.setApellidos(apellidos.trim());
+        actual.setCorreo(correoLimpio);
+    }
+
+    LOG.info("Cuenta actualizada usuario_id=" + idUsuario
+            + " cambioPassword=" + cambiaPassword);
+
+    return null;
+}
 }

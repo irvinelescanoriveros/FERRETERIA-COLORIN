@@ -94,6 +94,18 @@ if ("Vendedor".equals(
             usuario.getRol()
     );
 }
+    private void abrirMiCuenta() {
+
+    MiCuentaDialog dialogo = new MiCuentaDialog(this, true);
+
+    dialogo.setLocationRelativeTo(this);
+    dialogo.setVisible(true);
+
+    dialogo.dispose();
+
+    // El nombre puede haber cambiado
+    cargarDatosUsuarioSesion();
+}
    private void abrirGestionCaja() {
 
     pe.ferreteria.modelo.Caja caja =
@@ -400,6 +412,7 @@ if ("Almacen".equals(rol)) {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         btnCaja = new javax.swing.JButton();
+        btnMiCuenta = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(230, 230, 255));
@@ -575,20 +588,31 @@ if ("Almacen".equals(rol)) {
             }
         });
 
+        btnMiCuenta.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
+        btnMiCuenta.setText("MI CUENTA");
+        btnMiCuenta.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        btnMiCuenta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMiCuentaActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout PanelEncabezadoLayout = new javax.swing.GroupLayout(PanelEncabezado);
         PanelEncabezado.setLayout(PanelEncabezadoLayout);
         PanelEncabezadoLayout.setHorizontalGroup(
             PanelEncabezadoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(PanelEncabezadoLayout.createSequentialGroup()
-                .addGap(49, 49, 49)
+                .addGap(19, 19, 19)
                 .addComponent(jLabel3)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtUsuarioNombre, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(39, 39, 39)
-                .addComponent(jLabel4)
                 .addGap(18, 18, 18)
-                .addComponent(txtUsuarioRol, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(146, 146, 146)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtUsuarioRol, javax.swing.GroupLayout.PREFERRED_SIZE, 218, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(btnMiCuenta, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(131, 131, 131)
                 .addComponent(btnCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnCerrarSesion, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -604,8 +628,9 @@ if ("Almacen".equals(rol)) {
                     .addComponent(btnCerrarSesion)
                     .addComponent(jLabel3)
                     .addComponent(jLabel4)
-                    .addComponent(btnCaja))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnCaja)
+                    .addComponent(btnMiCuenta))
+                .addContainerGap(13, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -628,7 +653,7 @@ if ("Almacen".equals(rol)) {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelBotones, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelContenedor, javax.swing.GroupLayout.DEFAULT_SIZE, 673, Short.MAX_VALUE)
+                .addComponent(panelContenedor, javax.swing.GroupLayout.DEFAULT_SIZE, 666, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -705,6 +730,10 @@ marcarBotonSeleccionado(btnRecepcion);
 marcarBotonSeleccionado(btnCaja);  // TODO add your handling code here:
     }//GEN-LAST:event_btnCajaActionPerformed
 
+    private void btnMiCuentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMiCuentaActionPerformed
+      abrirMiCuenta();  // TODO add your handling code here:
+    }//GEN-LAST:event_btnMiCuentaActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -719,6 +748,7 @@ marcarBotonSeleccionado(btnCaja);  // TODO add your handling code here:
     private javax.swing.JButton btnDashBoard;
     private javax.swing.JButton btnInventario1;
     private javax.swing.JButton btnKardex;
+    private javax.swing.JButton btnMiCuenta;
     private javax.swing.JButton btnProductos1;
     private javax.swing.JButton btnProveedores1;
     private javax.swing.JButton btnRecepcion;

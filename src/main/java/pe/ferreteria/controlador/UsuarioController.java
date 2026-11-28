@@ -44,4 +44,11 @@ public class UsuarioController {
     public boolean cambiarPassword(int idUsuario, String nuevaPassword) {
         return usuarioService.cambiarPassword(idUsuario, nuevaPassword);
     }
+    public String actualizarMiCuenta(String nombre, String apellidos,
+        String correo, String passwordActual, String nuevaPassword) {
+
+    return usuarioService.actualizarMiCuenta(
+            nombre, apellidos, correo, passwordActual, nuevaPassword
+    );
+}
 }
