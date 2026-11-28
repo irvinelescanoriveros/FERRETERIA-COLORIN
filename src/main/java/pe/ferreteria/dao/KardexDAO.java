@@ -1490,4 +1490,68 @@ public List<MermaReporte> listarMermaReporte(
                     "Error al actualizar la entrada de recepción en Kardex.", e);
         }
     }
+    /*
+     * Devuelve el numero (id) de la ultima venta que movio stock,
+     * o 0 si todavia no hay ventas.
+     */
+    public int obtenerUltimaVenta() {
+
+        String sql = """
+                SELECT COALESCE(MAX(id_referencia), 0) AS ultima
+                FROM Kardex
+                WHERE tipo_referencia = 'Venta'
+                  AND movimiento = 'Salida'
+                  AND motivo_movimiento = 'Venta'
+                """;
+
+        try (Connection cn = ConexionBD.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt("ultima");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al obtener la ultima venta: " + e.getMessage());
+        }
+
+        return 0;
+    }
+
+    /*
+     * Devuelve los codigos de lote que afecto una venta.
+     */
+    public java.util.Set<String> obtenerLotesDeVenta(int idVenta) {
+
+        java.util.Set<String> lotes = new java.util.HashSet<>();
+
+        String sql = """
+                SELECT DISTINCT i.lote
+                FROM Kardex k
+                JOIN Inventario i ON i.id_inventario = k.id_inventario
+                WHERE k.tipo_referencia = 'Venta'
+                  AND k.movimiento = 'Salida'
+                  AND k.motivo_movimiento = 'Venta'
+                  AND k.id_referencia = ?
+                """;
+
+        try (Connection cn = ConexionBD.conectar();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+
+            ps.setInt(1, idVenta);
+
+            try (ResultSet rs = ps.executeQuery()) {
+
+                while (rs.next()) {
+                    lotes.add(rs.getString("lote"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al obtener los lotes de la venta: " + e.getMessage());
+        }
+
+        return lotes;
+    }
 }

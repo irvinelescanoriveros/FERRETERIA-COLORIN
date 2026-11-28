@@ -204,4 +204,12 @@ public List<MermaReporte> listarMermaReporte(
             idUsuario
     );
 }
+  public int obtenerUltimaVenta() {
+        return kardexService.obtenerUltimaVenta();
+    }
+
+    public java.util.Set<String> obtenerLotesUltimaVenta() {
+        return kardexService.obtenerLotesUltimaVenta();
+    }
+
 }

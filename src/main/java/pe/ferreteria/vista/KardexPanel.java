@@ -72,6 +72,7 @@ private List<Marca> listaMarcas
 
 private List<Proveedor> listaProveedores
         = new ArrayList<>();
+private int ultimaVenta = 0;
     
 
     public KardexPanel() {
@@ -86,6 +87,9 @@ private List<Proveedor> listaProveedores
 }
 
     private void cargarDatosKardex() {
+
+        // Numero de la ultima venta (para resaltar sus movimientos)
+        ultimaVenta = kardexController.obtenerUltimaVenta();
 
         listaKardex
                 = kardexController.listar();
@@ -138,7 +142,60 @@ listaProveedores
     };
 
     tableKardex.setModel(modelo);
+
+    aplicarColoresKardex();
 }
+    
+  private void aplicarColoresKardex() {
+
+    // Amarillo suave: movimientos de la ultima venta
+    final java.awt.Color COLOR_ULTIMA_VENTA =
+            new java.awt.Color(255, 243, 176);
+
+    javax.swing.table.DefaultTableCellRenderer renderer =
+            new javax.swing.table.DefaultTableCellRenderer() {
+
+        @Override
+        public java.awt.Component getTableCellRendererComponent(
+                javax.swing.JTable tabla, Object valor,
+                boolean seleccionada, boolean enfoque,
+                int fila, int columna) {
+
+            java.awt.Component celda = super.getTableCellRendererComponent(
+                    tabla, valor, seleccionada, enfoque, fila, columna);
+
+            // La fila seleccionada conserva el color normal de seleccion
+            if (seleccionada) {
+                return celda;
+            }
+
+            int filaModelo = tabla.convertRowIndexToModel(fila);
+
+            boolean resaltar = false;
+
+            if (ultimaVenta > 0
+                    && filaModelo >= 0
+                    && filaModelo < listaKardexMostrada.size()) {
+
+                Kardex k = listaKardexMostrada.get(filaModelo);
+
+                resaltar = k.getIdReferencia() != null
+                        && k.getIdReferencia().intValue() == ultimaVenta
+                        && "Salida".equalsIgnoreCase(k.getMovimiento())
+                        && "Venta".equalsIgnoreCase(k.getMotivoMovimiento());
+            }
+
+            celda.setBackground(
+                    resaltar ? COLOR_ULTIMA_VENTA : tabla.getBackground()
+            );
+            celda.setForeground(tabla.getForeground());
+
+            return celda;
+        }
+    };
+
+    tableKardex.setDefaultRenderer(Object.class, renderer);
+}  
     private void cargarTablaKardex(List<Kardex> lista) {
 
     javax.swing.table.DefaultTableModel modelo

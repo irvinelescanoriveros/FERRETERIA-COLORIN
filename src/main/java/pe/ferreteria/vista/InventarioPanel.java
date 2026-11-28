@@ -56,6 +56,8 @@ public class InventarioPanel extends javax.swing.JPanel {
             = new ArrayList<>();
     private final KardexController kardexController
         = new KardexController();
+    private java.util.Set<String> lotesUltimaVenta =
+        new java.util.HashSet<>();
 
     public InventarioPanel() {
         initComponents();
@@ -78,6 +80,9 @@ public class InventarioPanel extends javax.swing.JPanel {
         listaCategorias = categoriaController.listar();
         listaMarcas = marcaController.listar();
         listaProveedores = proveedorController.listar();
+
+        // Lotes que movio la ultima venta (para resaltarlos)
+        lotesUltimaVenta = kardexController.obtenerLotesUltimaVenta();
     }
 
     private void configurarTablaInventario() {
@@ -113,8 +118,53 @@ public class InventarioPanel extends javax.swing.JPanel {
         };
 
         tableInventario.setModel(modelo);
-    }
 
+        aplicarColoresInventario();
+    }
+private void aplicarColoresInventario() {
+
+    // Amarillo suave: lotes afectados por la ultima venta
+    final java.awt.Color COLOR_ULTIMA_VENTA =
+            new java.awt.Color(255, 243, 176);
+
+    final int COLUMNA_LOTE = 0;
+
+    javax.swing.table.DefaultTableCellRenderer renderer =
+            new javax.swing.table.DefaultTableCellRenderer() {
+
+        @Override
+        public java.awt.Component getTableCellRendererComponent(
+                javax.swing.JTable tabla, Object valor,
+                boolean seleccionada, boolean enfoque,
+                int fila, int columna) {
+
+            java.awt.Component celda = super.getTableCellRendererComponent(
+                    tabla, valor, seleccionada, enfoque, fila, columna);
+
+            // La fila seleccionada conserva el color normal de seleccion
+            if (seleccionada) {
+                return celda;
+            }
+
+            int filaModelo = tabla.convertRowIndexToModel(fila);
+
+            Object lote = tabla.getModel()
+                    .getValueAt(filaModelo, COLUMNA_LOTE);
+
+            boolean resaltar = lote != null
+                    && lotesUltimaVenta.contains(lote.toString());
+
+            celda.setBackground(
+                    resaltar ? COLOR_ULTIMA_VENTA : tabla.getBackground()
+            );
+            celda.setForeground(tabla.getForeground());
+
+            return celda;
+        }
+    };
+
+    tableInventario.setDefaultRenderer(Object.class, renderer);
+}
     private void cargarTablaInventario() {
 
         javax.swing.table.DefaultTableModel modelo

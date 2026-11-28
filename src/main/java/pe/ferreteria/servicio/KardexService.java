@@ -2228,4 +2228,18 @@ if (cantidad > cantidadDisponible) {
             idUsuario
     );
 }
+    public int obtenerUltimaVenta() {
+        return kardexDAO.obtenerUltimaVenta();
+    }
+
+    public java.util.Set<String> obtenerLotesUltimaVenta() {
+
+        int idVenta = kardexDAO.obtenerUltimaVenta();
+
+        if (idVenta <= 0) {
+            return new java.util.HashSet<>();
+        }
+
+        return kardexDAO.obtenerLotesDeVenta(idVenta);
+    }
 }

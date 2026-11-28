@@ -106,7 +106,7 @@ if ("Vendedor".equals(
     // El nombre puede haber cambiado
     cargarDatosUsuarioSesion();
 }
-   private void abrirGestionCaja() {
+    void abrirGestionCaja() {
 
     pe.ferreteria.modelo.Caja caja =
             cajaService.buscarCajaAbierta();

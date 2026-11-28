@@ -1435,6 +1435,33 @@ public class VentaPanel extends javax.swing.JPanel {
 
     private boolean validarVentaAntesDeCobrar() {
 
+        // Primero: la caja debe estar abierta
+        if (new pe.ferreteria.servicio.CajaService()
+                .buscarCajaAbierta() == null) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "No hay una Caja abierta."
+                    + "\nDebe abrir una Caja antes de realizar una venta.",
+                    "Caja cerrada",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            // Despues del aviso se abre la ventana para el monto de apertura
+            java.awt.Window ventana =
+                    javax.swing.SwingUtilities.getWindowAncestor(this);
+
+            if (ventana instanceof MainForm) {
+                ((MainForm) ventana).abrirGestionCaja();
+            }
+
+            // Si no se abrio la caja (se cancelo), no se cobra
+            if (new pe.ferreteria.servicio.CajaService()
+                    .buscarCajaAbierta() == null) {
+                return false;
+            }
+        }
+
         // Validar cliente seleccionado
         int filaCliente
                 = TableBuscarCliente.getSelectedRow();
